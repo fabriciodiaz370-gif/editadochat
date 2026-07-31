@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pádel Miramar — Apertura 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090e;
+    --card: #0d111a;
+    --card-2: #141a26;
+    --line: #1e2638;
+    --lime: #d2f23a;
+    --lime-dim: rgba(210, 242, 58, 0.12);
+    --white: #f5f5f5;
+    --grey: #8a94a6;
+    --font-display: 'Montserrat', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background: var(--bg); color: var(--white); font-family: var(--font-body); line-height: 1.5; }
+  a { color: inherit; text-decoration: none; }
+  button, select, input { font-family: var(--font-body); }
+  
+  select, input {
+    background: var(--card-2); border: 1px solid var(--line); border-radius: 8px; color: var(--white);
+    padding: 10px 12px; font-size: 0.88rem; outline: none;
+  }
+  select:focus, input:focus { border-color: var(--lime); }
+
+  /* Navbar */
+  nav {
+    display: flex; align-items: center; justify-content: space-between; padding: 18px 5vw;
+    background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--lime); display: flex; align-items: center; justify-content: center; }
+  .brand-name { font-family: var(--font-display); font-weight: 900; font-size: 1.1rem; line-height: 1; }
+  .brand-name span { display: block; color: var(--lime); font-size: 0.9rem; font-weight: 800; }
+  .brand-divider { width: 1px; height: 26px; background: var(--line); margin: 0 4px; }
+  .brand-season { font-family: var(--font-display); font-weight: 800; color: var(--lime); font-size: 0.85rem; line-height: 1.2; }
+  .brand-season small { display: block; color: var(--grey); font-weight: 600; font-size: 0.65rem; }
+  
+  .navlinks { display: none; gap: 28px; font-weight: 700; font-size: 0.82rem; color: var(--grey); letter-spacing: 0.05em; }
+  .navlinks a.active, .navlinks a:hover { color: var(--lime); }
+  @media(min-width:920px) { .navlinks { display: flex; } }
+
+  /* Hero / Banner Agrandado */
+  .hero-container {
+    position: relative;
+    background: linear-gradient(180deg, rgba(7,9,14,0.3) 0%, rgba(7,9,14,0.85) 75%, var(--bg) 100%),
+                url('https://images.unsplash.com/photo-1626248801379-51a0748a5f96?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+    padding: 150px 5vw 130px;
+    min-height: 640px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+  }
+  .hero { max-width: 1300px; margin: 0 auto; width: 100%; }
+  .hero-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(2.8rem, 6.5vw, 4.8rem); line-height: 0.95; letter-spacing: -0.02em; }
+  .hero-title .lime { color: var(--lime); display: block; margin-top: 6px; }
+  .hero-meta { display: flex; gap: 28px; margin-top: 28px; flex-wrap: wrap; color: #b0b8c8; font-size: 1rem; font-weight: 500; }
+  .hero-meta div { display: flex; align-items: center; gap: 10px; }
+  
+  .hero-cta { display: flex; gap: 16px; margin-top: 38px; flex-wrap: wrap; }
+  .btn {
+    font-weight: 800; font-size: 0.88rem; padding: 16px 28px; border-radius: 8px; border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 10px; transition: all .2s ease; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: var(--lime); color: #07090e; }
+  .btn-primary:hover { box-shadow: 0 6px 20px rgba(210,242,58,0.3); }
+  .btn-outline { background: rgba(13,17,26,0.6); color: var(--white); border: 1px solid var(--line); backdrop-filter: blur(4px); }
+  .btn-outline:hover { border-color: var(--lime); color: var(--lime); }
+
+  /* Sections general */
+  section { padding: 55px 5vw; max-width: 1300px; margin: 0 auto; }
+  .sec-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+  .sec-title { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 900; font-size: 1.3rem; letter-spacing: 0.02em; }
+  .sec-icon { width: 22px; height: 22px; color: var(--lime); }
+
+  /* Grid Próximos Partidos */
+  .partidos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+  .match-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+  .match-head { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; }
+  .cat-tag { padding: 4px 8px; border-radius: 4px; background: rgba(59,130,246,0.15); color: #60a5fa; text-transform: uppercase; }
+  .match-body { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
+  .team-box { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 42%; }
+  .avatar-pair { display: flex; margin-left: -10px; }
+  .avatar-pair .avatar-ph { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--card); background: #1f293d; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; }
+  .vs-badge { font-family: var(--font-display); font-weight: 900; color: var(--lime); font-size: 1.1rem; }
+  .team-names { font-size: 0.85rem; font-weight: 700; line-height: 1.2; }
+  .match-foot { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; font-size: 0.75rem; color: var(--grey); }
+
+  /* ESTILOS DE LLAVES CON ESPACIAMENTO MEJORADO */
+  .bracket-wrap { 
+    background: var(--card); 
+    border: 1px solid var(--line); 
+    border-radius: 16px; 
+    padding: 32px 24px; 
+    overflow-x: auto; 
+    position: relative;
+  }
+  .bracket { 
+    display: flex; 
+    min-width: 850px; 
+    min-height: 650px; /* Le da altura vertical para que respiren las llaves */
+    position: relative;
+    justify-content: space-between;
+  }
+  .round-col { 
+    display: flex; 
+    flex-direction: column; 
+    width: 210px; 
+    position: relative;
+    z-index: 2;
+  }
+  .round-header { 
+    text-align: center; 
+    font-size: 0.72rem; 
+    font-weight: 800; 
+    color: var(--grey); 
+    letter-spacing: 0.08em; 
+    text-transform: uppercase; 
+    height: 30px;
+    margin-bottom: 10px;
+  }
+  .round-matches {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    flex-grow: 1;
+    gap: 12px; /* Espacio extra entre casilleros en octavos */
+  }
+  .seed-match { 
+    background: var(--card-2); 
+    border: 1px solid var(--line); 
+    border-radius: 8px; 
+    height: 66px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .seed-row { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 6px 12px; 
+    font-size: 0.78rem; 
+    font-weight: 600; 
+  }
+  .seed-row:first-child { border-bottom: 1px solid var(--line); }
+  .seed-num { color: var(--lime); font-weight: 800; font-size: 0.72rem; margin-right: 8px; display: inline-block; width: 14px; }
+  .seed-row.winner { color: var(--lime); font-weight: 800; }
+  .seed-row.bye, .seed-row.tbd { color: var(--grey); font-style: italic; }
+
+  /* SVG Conectores */
+  .bracket-svg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Torneos Grid */
+  .torneos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+  .torneo-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .badge { font-size: 0.65rem; font-weight: 800; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+  .badge-abierto { background: var(--lime-dim); color: var(--lime); }
+  .badge-cerrado { background: rgba(229,72,77,0.15); color: #e5484d; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: var(--card-2); color: var(--grey); }
+
+  /* Info Cards Footer Grid */
+  .info-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 40px; }
+  .info-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px; }
+  .info-card-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--lime); flex-shrink: 0; }
+  .info-card h4 { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+  .info-card p { font-size: 0.78rem; color: var(--grey); margin-top: 2px; }
+
+  /* Formularios */
+  .inscripcion-wrap { display: grid; grid-template-columns: 1fr; gap: 36px; }
+  @media(min-width:860px){ .inscripcion-wrap { grid-template-columns: 1fr 1.1fr; } }
+  form.inscripcion { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 0.7rem; color: var(--grey); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+
+  .empty-note { color: var(--grey); font-size: 0.88rem; padding: 24px; background: var(--card); border: 1px dashed var(--line); border-radius: 12px; text-align: center; }
+
+  footer { padding: 30px 5vw; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-top: 1px solid var(--line); color: var(--grey); font-size: 0.8rem; }
+  .footer-brand { display: flex; align-items: center; gap: 8px; font-weight: 800; color: var(--white); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="6" stroke="#07090e" stroke-width="2"/><path d="M12 15v6" stroke="#07090e" stroke-width="2"/></svg>
+    </div>
+    <div class="brand-name">PÁDEL<span>MIRAMAR</span></div>
+    <div class="brand-divider"></div>
+    <div class="brand-season">APERTURA<small>2026</small></div>
+  </div>
+  <div class="navlinks">
+    <a href="#" class="active">INICIO</a>
+    <a href="#proximos">PRÓXIMOS PARTIDOS</a>
+    <a href="#llaves">LLAVE DEL TORNEO</a>
+    <a href="ranking.html">RANKING</a>
+    <a href="#inscripcion">INSCRIPCIÓN</a>
+  </div>
+</nav>
+
+<!-- Banner / Hero Agrandado -->
+<div class="hero-container">
+  <div class="hero">
+    <h1 class="hero-title">PÁDEL MIRAMAR<span class="lime">APERTURA 2026</span></h1>
+    <div class="hero-meta">
+      <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>18 al 26 de Mayo</div>
+      <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>Club Padel Center Miramar</div>
+    </div>
+    <div class="hero-cta">
+      <a href="#inscripcion" class="btn btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        INSCRIBIR MI PAREJA
+      </a>
+      <a href="#torneos" class="btn btn-outline">VER TORNEOS</a>
+    </div>
+  </div>
+</div>
+
+<!-- Sección Próximos Partidos -->
+<section id="proximos">
+  <div class="sec-head">
+    <div class="sec-title">
+      <svg class="sec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      PRÓXIMOS PARTIDOS
+    </div>
+    <select id="select-cat-proximos">
+      <option value="todas">Todas las categorías</option>
+    </select>
+  </div>
+  <div class="partidos-grid" id="partidos-grid">
+    <div class="empty-note">Cargando partidos…</div>
+  </div>
+</section>
+
+<!-- Sección Llaves Centradas con Conectores -->
+<section id="llaves">
+  <div class="sec-head">
+    <div class="sec-title">
+      <svg class="sec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-3 3"/></svg>
+      LLAVE DEL TORNEO
+    </div>
+    <div style="display:flex; gap:10px;">
+      <select id="select-torneo"></select>
+      <select id="select-categoria"></select>
+    </div>
+  </div>
+  <div id="llave-content"></div>
+</section>
+
+<!-- Categorías / Torneos -->
+<section id="torneos">
+  <div class="sec-head">
+    <div class="sec-title">TORNEOS Y CATEGORÍAS</div>
+  </div>
+  <div class="torneos-grid" id="torneos-grid"></div>
+</section>
+
+<!-- Sección Formulario e Info Cards -->
+<section id="inscripcion">
+  <div class="sec-head">
+    <div class="sec-title">INSCRIPCIÓN DE PAREJA</div>
+  </div>
+  <div class="inscripcion-wrap" id="inscripcion-wrap">
+    <form class="inscripcion" id="form-inscripcion">
+      <div class="form-row">
+        <div class="field"><label>Jugador 1</label><input type="text" id="j1" required placeholder="Nombre y apellido"></div>
+        <div class="field"><label>Jugador 2</label><input type="text" id="j2" required placeholder="Nombre y apellido"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Torneo</label><select id="insc-torneo" required></select></div>
+        <div class="field"><label>Categoría</label><select id="insc-categoria" required></select></div>
+      </div>
+      <div class="form-row" id="insc-suma-cats" style="display:none;">
+        <div class="field"><label>Categoría de Jugador 1</label><select id="insc-cat-j1"></select></div>
+        <div class="field"><label>Categoría de Jugador 2</label><select id="insc-cat-j2"></select></div>
+      </div>
+      <div class="field"><label>Teléfono de contacto</label><input type="tel" id="telefono" required placeholder="11 5555-5555"></div>
+      <button type="submit" class="btn btn-primary" style="align-self:flex-start; margin-top:8px;">Enviar postulación</button>
+    </form>
+  </div>
+  <div class="empty-note" id="inscripcion-cerrada-msg" style="display:none;">Por el momento no hay torneos con inscripción abierta. Volvé a revisar más adelante.</div>
+
+  <div class="info-cards-grid">
+    <div class="info-card">
+      <div class="info-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+      <div><h4>CATEGORÍAS</h4><p>7ma, 6ta y 5ta</p></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div><h4>FORMATO</h4><p>Eliminación directa con repechaje</p></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 4v16M2 12h20"/></svg></div>
+      <div><h4>CANCHAS</h4><p>4 canchas disponibles</p></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
+      <div><h4>IMPORTANTE</h4><p>Presentarse 15 min antes</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>© 2026 Pádel Miramar. Todos los derechos reservados.</div>
+  <div class="footer-brand">
+    <div class="brand-icon" style="width:26px;height:26px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="6" stroke="#07090e" stroke-width="2"/><path d="M12 15v6" stroke="#07090e" stroke-width="2"/></svg></div>
+    CLUB PADEL CENTER MIRAMAR
+  </div>
+</footer>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  SUPABASE_URL, SUPABASE_ANON_KEY, CATEGORIAS, CATEGORIA_LABEL,
+  uid, roundLabel, loadState, saveState, isAprobada, resolverJugadorId,
+  isCategoriaSuma, getCategoriaLabel
+} from './shared.js?v=5';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let state = null;
+
+function renderTorneosGrid(){
+  const grid = document.getElementById('torneos-grid');
+  if(!state?.torneos?.length){ grid.innerHTML = '<div class="empty-note">Todavía no hay torneos cargados.</div>'; return; }
+  grid.innerHTML = state.torneos.map(t=>{
+    return `
+      <div class="torneo-card">
+        <div><span class="badge ${t.inscripcionAbierta ? 'badge-abierto' : 'badge-cerrado'}">${t.inscripcionAbierta ? 'Inscripción Abierta' : 'Inscripción Cerrada'}</span></div>
+        <h3 style="font-family:var(--font-display);">${t.nombre}</h3>
+        <div style="font-size:0.8rem; color:var(--grey);">${t.fecha} — <b>${t.lugar}</b></div>
+        <div class="chips">${t.categorias.map(c=>`<span class="chip">${getCategoriaLabel(state,c)}</span>`).join('')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const DIAS_SEMANA = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+function formatFechaPartido(fecha){
+  if(!fecha) return '';
+  const [y,m,d] = fecha.split('-').map(Number);
+  if(!y || !m || !d) return fecha;
+  const dt = new Date(y, m-1, d);
+  return `${DIAS_SEMANA[dt.getDay()]} ${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}`;
+}
+
+function getPartidosPendientes(){
+  const lista = [];
+  (state.torneos || []).forEach(t=>{
+    (t.partidos || []).forEach(p=>{
+      if(!p.jugado) lista.push({ ...p, torneoNombre: t.nombre });
+    });
+  });
+  lista.sort((a,b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+  return lista;
+}
+
+function poblarFiltroCategoriaProximos(){
+  const sel = document.getElementById('select-cat-proximos');
+  const categoriasConPartidos = [...new Set(getPartidosPendientes().map(p=>p.categoria))];
+  const orden = c => {
+    const i = CATEGORIAS.indexOf(c);
+    if(i !== -1) return i;
+    const m = /^suma(\d+)$/.exec(c);
+    return 100 + (m ? Number(m[1]) : 0);
+  };
+  const catsOrdenadas = categoriasConPartidos.sort((a,b)=>orden(a)-orden(b));
+  const valorPrevio = sel.value || 'todas';
+  sel.innerHTML = '<option value="todas">Todas las categorías</option>' +
+    catsOrdenadas.map(c=>`<option value="${c}">${getCategoriaLabel(state,c)}</option>`).join('');
+  sel.value = [...sel.options].some(o=>o.value===valorPrevio) ? valorPrevio : 'todas';
+}
+
+function renderProximosPartidos(){
+  const grid = document.getElementById('partidos-grid');
+  const catFiltro = document.getElementById('select-cat-proximos').value;
+  let partidos = getPartidosPendientes();
+  if(catFiltro !== 'todas') partidos = partidos.filter(p=>p.categoria===catFiltro);
+
+  if(partidos.length === 0){
+    grid.innerHTML = '<div class="empty-note">No hay partidos programados por el momento.</div>';
+    return;
+  }
+
+  grid.innerHTML = partidos.map(p=>{
+    const [nomA1='', nomA2=''] = (p.equipoA||'').split(' / ');
+    const [nomB1='', nomB2=''] = (p.equipoB||'').split(' / ');
+    const inicial = n => (n.trim().charAt(0) || '?').toUpperCase();
+    return `
+      <div class="match-card">
+        <div class="match-head">
+          <span class="cat-tag">${getCategoriaLabel(state,p.categoria)} CATEGORÍA</span>
+          <span style="color:var(--grey)">${escapeHtml(p.torneoNombre || '')}</span>
+        </div>
+        <div class="match-body">
+          <div class="team-box">
+            <div class="avatar-pair"><div class="avatar-ph">${inicial(nomA1)}</div><div class="avatar-ph">${inicial(nomA2)}</div></div>
+            <div class="team-names">${escapeHtml(p.equipoA)}</div>
+          </div>
+          <div class="vs-badge">VS</div>
+          <div class="team-box">
+            <div class="avatar-pair"><div class="avatar-ph">${inicial(nomB1)}</div><div class="avatar-ph">${inicial(nomB2)}</div></div>
+            <div class="team-names">${escapeHtml(p.equipoB)}</div>
+          </div>
+        </div>
+        <div class="match-foot">
+          <div>${formatFechaPartido(p.fecha)}${p.hora ? ' — ' + p.hora : ''}</div>
+          <div>${escapeHtml(p.cancha || '')}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function populateSelectors(){
+  const selT = document.getElementById('select-torneo');
+  const selC = document.getElementById('select-categoria');
+  const inscT = document.getElementById('insc-torneo');
+  const inscC = document.getElementById('insc-categoria');
+  const inscripcionWrap = document.getElementById('inscripcion-wrap');
+  const inscripcionCerradaMsg = document.getElementById('inscripcion-cerrada-msg');
+
+  selT.innerHTML = state.torneos.map(t=>`<option value="${t.id}">${t.nombre}</option>`).join('');
+
+  const torneosConInscripcion = state.torneos.filter(t=>t.inscripcionAbierta);
+  if(torneosConInscripcion.length === 0){
+    inscripcionWrap.style.display = 'none';
+    inscripcionCerradaMsg.style.display = 'block';
+  } else {
+    inscripcionWrap.style.display = '';
+    inscripcionCerradaMsg.style.display = 'none';
+    inscT.innerHTML = torneosConInscripcion.map(t=>`<option value="${t.id}">${t.nombre}</option>`).join('');
+  }
+
+  function refreshCatOptions(torneoId, target){
+    const t = state.torneos.find(x=>x.id===torneoId);
+    target.innerHTML = (t?.categorias||[]).map(c=>`<option value="${c}">${getCategoriaLabel(state,c)}</option>`).join('');
+  }
+
+  function refreshSumaFields(){
+    const sumaWrap = document.getElementById('insc-suma-cats');
+    const selJ1 = document.getElementById('insc-cat-j1');
+    const selJ2 = document.getElementById('insc-cat-j2');
+    if(isCategoriaSuma(inscC.value)){
+      const opts = CATEGORIAS.map(c=>`<option value="${c}">${CATEGORIA_LABEL[c]}</option>`).join('');
+      selJ1.innerHTML = opts;
+      selJ2.innerHTML = opts;
+      selJ1.required = true; selJ2.required = true;
+      sumaWrap.style.display = 'flex';
+    } else {
+      selJ1.required = false; selJ2.required = false;
+      sumaWrap.style.display = 'none';
+    }
+  }
+
+  refreshCatOptions(selT.value, selC);
+  if(torneosConInscripcion.length > 0){
+    refreshCatOptions(inscT.value, inscC);
+    refreshSumaFields();
+  }
+
+  selT.onchange = ()=>{ refreshCatOptions(selT.value, selC); renderLlave(); };
+  selC.onchange = renderLlave;
+  inscT.onchange = ()=>{ refreshCatOptions(inscT.value, inscC); refreshSumaFields(); };
+  inscC.onchange = refreshSumaFields;
+}
+
+function teamLabel(team){
+  if(!team) return '- / -';
+  if(team.bye) return 'BYE';
+  return `${team.j1} / ${team.j2}`;
+}
+
+function renderLlave(){
+  const t = state.torneos.find(x=>x.id===document.getElementById('select-torneo').value);
+  const cat = document.getElementById('select-categoria').value;
+  const content = document.getElementById('llave-content');
+  if(!t || !cat){ content.innerHTML = '<div class="empty-note">Elegí un torneo y una categoría.</div>'; return; }
+  const rounds = t.brackets[cat];
+  if(!rounds){ content.innerHTML = '<div class="empty-note">Todavía no se generó la llave para esta categoría.</div>'; return; }
+
+  // Render HTML de las columnas de llaves
+  let html = `<div class="bracket-wrap" id="bracket-container">
+    <div class="bracket" id="bracket-elm">`;
+
+  rounds.forEach((round, ri)=>{
+    html += `
+      <div class="round-col" data-round="${ri}">
+        <div class="round-header">${roundLabel(ri, rounds.length)}</div>
+        <div class="round-matches">
+          ${round.map((m, idx)=>`
+            <div class="seed-match" id="match-${ri}-${idx}">
+              <div class="seed-row ${m.winner?.id===m.teamA?.id ? 'winner' : ''}">
+                <span><span class="seed-num">${idx*2+1}</span>${teamLabel(m.teamA)}</span>
+              </div>
+              <div class="seed-row ${m.winner?.id===m.teamB?.id ? 'winner' : ''}">
+                <span><span class="seed-num">${idx*2+2}</span>${teamLabel(m.teamB)}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div><svg class="bracket-svg-layer" id="bracket-svg"></svg></div>`;
+  content.innerHTML = html;
+
+  // Trazar conectores SVG entre partidos
+  setTimeout(() => drawConnectors(rounds), 50);
+}
+
+function drawConnectors(rounds){
+  const svg = document.getElementById('bracket-svg');
+  const container = document.getElementById('bracket-container');
+  if(!svg || !container) return;
+
+  const rectContainer = container.getBoundingClientRect();
+  svg.setAttribute('width', container.scrollWidth);
+  svg.setAttribute('height', container.scrollHeight);
+  
+  let pathStr = '';
+
+  for(let r = 0; r < rounds.length - 1; r++){
+    const currentRound = rounds[r];
+    for(let m = 0; m < currentRound.length; m++){
+      const currentMatchEl = document.getElementById(`match-${r}-${m}`);
+      const nextMatchEl = document.getElementById(`match-${r+1}-${Math.floor(m/2)}`);
+
+      if(currentMatchEl && nextMatchEl){
+        const r1 = currentMatchEl.getBoundingClientRect();
+        const r2 = nextMatchEl.getBoundingClientRect();
+
+        const x1 = (r1.right - rectContainer.left) + container.scrollLeft;
+        const y1 = (r1.top + r1.height / 2 - rectContainer.top) + container.scrollTop;
+        const x2 = (r2.left - rectContainer.left) + container.scrollLeft;
+        const y2 = (r2.top + r2.height / 2 - rectContainer.top) + container.scrollTop;
+        const xMid = x1 + (x2 - x1) / 2;
+
+        pathStr += `M ${x1} ${y1} L ${xMid} ${y1} L ${xMid} ${y2} L ${x2} ${y2} `;
+      }
+    }
+  }
+
+  svg.innerHTML = `<path d="${pathStr}" fill="none" stroke="#2a364f" stroke-width="2"/>`;
+}
+
+document.getElementById('form-inscripcion').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const j1 = document.getElementById('j1').value.trim();
+  const j2 = document.getElementById('j2').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+  const torneoId = document.getElementById('insc-torneo').value;
+  const cat = document.getElementById('insc-categoria').value;
+  const t = state.torneos.find(x=>x.id===torneoId);
+  if(!t || !cat){ return; }
+  if(!t.inscripcionAbierta){ alert('La inscripción para este torneo ya está cerrada.'); populateSelectors(); return; }
+
+  const esSuma = isCategoriaSuma(cat);
+  let cat_j1 = null, cat_j2 = null;
+  if(esSuma){
+    cat_j1 = document.getElementById('insc-cat-j1').value;
+    cat_j2 = document.getElementById('insc-cat-j2').value;
+    if(!cat_j1 || !cat_j2){ alert('Elegí la categoría de cada jugador.'); return; }
+  }
+
+  t.parejas[cat] = t.parejas[cat] || [];
+  // Para Suma, cada jugador se resuelve con su propia categoría declarada (no con la del torneo)
+  const j1_id = resolverJugadorId(state, j1, esSuma ? cat_j1 : cat);
+  const j2_id = resolverJugadorId(state, j2, esSuma ? cat_j2 : cat);
+  const nuevaPareja = { id: uid('p'), j1_id, j2_id, j1, j2, telefono, estado:'pendiente' };
+  if(esSuma){ nuevaPareja.cat_j1 = cat_j1; nuevaPareja.cat_j2 = cat_j2; }
+  t.parejas[cat].push(nuevaPareja);
+  
+  try{
+    await saveState(supabase, state);
+    alert('¡Postulación enviada correctamente!');
+    this.reset();
+    renderTorneosGrid();
+  }catch(err){
+    console.error(err);
+    alert('Error al guardar la inscripción.');
+  }
+});
+
+window.addEventListener('resize', () => {
+  const selT = document.getElementById('select-torneo');
+  if(selT && selT.value) renderLlave();
+});
+
+(async function init(){
+  try{
+    state = await loadState(supabase);
+    renderTorneosGrid();
+    populateSelectors();
+    renderLlave();
+    poblarFiltroCategoriaProximos();
+    renderProximosPartidos();
+    document.getElementById('select-cat-proximos').onchange = renderProximosPartidos;
+  }catch(e){
+    console.error(e);
+    const msg = `<div class="empty-note">No se pudo cargar la información. Probá recargar la página. (${escapeHtml(e.message || e)})</div>`;
+    const grid = document.getElementById('torneos-grid');
+    const llave = document.getElementById('llave-content');
+    const partidos = document.getElementById('partidos-grid');
+    if(grid) grid.innerHTML = msg;
+    if(llave) llave.innerHTML = msg;
+    if(partidos) partidos.innerHTML = msg;
+  }
+})();
+</script>
+
+</body>
+</html>
