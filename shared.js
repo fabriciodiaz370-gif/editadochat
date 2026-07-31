@@ -77,6 +77,24 @@ export const POSICION_LABELS = {
 export const LATERALIDADES = { 'diestro': 'Diestro', 'zurdo': 'Zurdo' };
 
 // ============================================================
+// Ronda de un partido programado ("próximos partidos"). Es un dato
+// que carga el admin a mano al programar el partido, para mostrar
+// en la web pública (ej: "Octavos de Final").
+// ============================================================
+export const RONDA_LABELS = {
+  grupos: 'Fase de Grupos',
+  dieciseisavos: '16vos de Final',
+  octavos: 'Octavos de Final',
+  cuartos: 'Cuartos de Final',
+  semifinal: 'Semifinal',
+  final: 'Final',
+};
+export const RONDA_OPCIONES = Object.keys(RONDA_LABELS);
+export function getRondaLabel(codigo){
+  return RONDA_LABELS[codigo] || '';
+}
+
+// ============================================================
 // Utilidades
 // ============================================================
 export function uid(prefix='id'){

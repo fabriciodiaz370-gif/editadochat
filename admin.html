@@ -155,8 +155,9 @@ import {
   SUPABASE_URL, SUPABASE_ANON_KEY, CATEGORIAS, CATEGORIA_LABEL, LATERALIDADES,
   uid, generateBracket, propagateWinner, roundLabel, loadState, saveState, isAprobada,
   resolverJugadorId, registrarResultadoPartido, getPuntosConfig, DEFAULT_PUNTOS_CONFIG, POSICION_LABELS,
-  isCategoriaSuma, getAllCategorias, getCategoriaLabel, getCategoriasSumaConfig
-} from './shared.js?v=5';
+  isCategoriaSuma, getAllCategorias, getCategoriaLabel, getCategoriasSumaConfig,
+  RONDA_LABELS, RONDA_OPCIONES, getRondaLabel
+} from './shared.js?v=6';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const app = document.getElementById('app');
@@ -640,6 +641,13 @@ function renderPartidosPanel(t){
         <div class="field"><label>Hora</label><input type="time" id="pp-hora"></div>
         <div class="field"><label>Cancha</label><input id="pp-cancha" placeholder="Cancha 1"></div>
       </div>
+      <div class="field" style="max-width:280px;margin-bottom:14px;">
+        <label>Ronda (opcional)</label>
+        <select id="pp-ronda">
+          <option value="">Sin ronda</option>
+          ${RONDA_OPCIONES.map(r=>`<option value="${r}">${RONDA_LABELS[r]}</option>`).join('')}
+        </select>
+      </div>
       <button class="btn btn-primary btn-block" id="btn-add-partido" style="margin-bottom:18px;">+ Programar partido</button>
       <label>Partidos programados (${partidos.length})</label>
       <div id="partidos-list">
@@ -648,6 +656,7 @@ function renderPartidosPanel(t){
             <div class="pareja-row">
               <span class="nombre">
                 <span style="color:var(--lime);font-weight:800;">${getCategoriaLabel(state,p.categoria)}</span>
+                ${p.ronda ? `<span style="color:var(--grey);font-weight:700;"> · ${getRondaLabel(p.ronda)}</span>` : ''}
                 — ${escapeHtml(p.equipoA)} vs ${escapeHtml(p.equipoB)}
                 <span style="display:block;color:var(--grey);font-size:0.78rem;font-weight:500;">${formatFechaCorta(p.fecha)}${p.hora?` — ${p.hora}`:''}${p.cancha?` · ${escapeHtml(p.cancha)}`:''}</span>
               </span>
@@ -685,6 +694,7 @@ function wirePartidosPanel(t){
     const fecha = document.getElementById('pp-fecha').value;
     const hora = document.getElementById('pp-hora').value;
     const cancha = document.getElementById('pp-cancha').value.trim();
+    const ronda = document.getElementById('pp-ronda').value;
     if(!pA || !pB){ toast('Elegí las dos parejas'); return; }
     if(pA.id === pB.id){ toast('Elegí dos parejas distintas'); return; }
     if(!fecha){ toast('Elegí una fecha'); return; }
@@ -692,7 +702,7 @@ function wirePartidosPanel(t){
     t.partidos.push({
       id: uid('partido'), categoria: cat,
       equipoA: `${pA.j1} / ${pA.j2}`, equipoB: `${pB.j1} / ${pB.j2}`,
-      fecha, hora, cancha, jugado: false
+      fecha, hora, cancha, ronda, jugado: false
     });
     persist(); render();
   };
