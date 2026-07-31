@@ -90,15 +90,18 @@
   /* Grid Próximos Partidos */
   .partidos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
   .match-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
-  .match-head { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; }
-  .cat-tag { padding: 4px 8px; border-radius: 4px; background: rgba(59,130,246,0.15); color: #60a5fa; text-transform: uppercase; }
+  .match-head { display: flex; align-items: center; gap: 10px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em; }
+  .cat-tag { padding: 4px 9px; border-radius: 6px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.45); color: var(--blue); text-transform: uppercase; font-weight: 800; }
+  .match-round { color: var(--grey); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; font-size: 0.68rem; }
   .match-body { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
   .team-box { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 42%; }
   .avatar-pair { display: flex; margin-left: -10px; }
-  .avatar-pair .avatar-ph { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--card); background: #1f293d; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; }
+  .avatar-pair .avatar-ph { width: 36px; height: 36px; border-radius: 50%; border: 2px solid rgba(245,245,247,0.3); background: #141a26; color: var(--white); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; }
   .vs-badge { font-family: var(--font-display); font-weight: 900; color: var(--blue); font-size: 1.1rem; }
   .team-names { font-size: 0.85rem; font-weight: 700; line-height: 1.2; }
   .match-foot { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; font-size: 0.75rem; color: var(--grey); }
+  .foot-item { display: flex; align-items: center; gap: 6px; }
+  .foot-item svg { color: var(--blue); flex-shrink: 0; }
 
   /* ESTILOS DE LLAVES CON ESPACIAMENTO MEJORADO */
   .bracket-wrap { 
@@ -423,8 +426,8 @@ function renderProximosPartidos(){
     return `
       <div class="match-card">
         <div class="match-head">
-          <span class="cat-tag">${getCategoriaLabel(state,p.categoria)} CATEGORÍA</span>
-          <span style="color:var(--grey)">${escapeHtml(p.torneoNombre || '')}</span>
+          <span class="cat-tag">${getCategoriaLabel(state,p.categoria)}</span>
+          <span class="match-round">${escapeHtml(p.torneoNombre || '')}</span>
         </div>
         <div class="match-body">
           <div class="team-box">
@@ -438,8 +441,14 @@ function renderProximosPartidos(){
           </div>
         </div>
         <div class="match-foot">
-          <div>${formatFechaPartido(p.fecha)}${p.hora ? ' — ' + p.hora : ''}</div>
-          <div>${escapeHtml(p.cancha || '')}</div>
+          <div class="foot-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+            ${formatFechaPartido(p.fecha)}${p.hora ? ' - ' + p.hora + ' HS' : ''}
+          </div>
+          <div class="foot-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+            ${escapeHtml(p.cancha || '')}
+          </div>
         </div>
       </div>
     `;
