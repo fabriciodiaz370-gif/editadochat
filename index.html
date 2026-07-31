@@ -41,13 +41,19 @@
   }
   .brand { display: flex; align-items: center; gap: 14px; }
   .brand-icon {
-    width: 78px; height: 78px; display: flex; align-items: center; justify-content: center;
+    width: 118px; height: 118px; margin: -19px 0; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; position: relative; z-index: 2;
   }
   .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; line-height: 1.3; color: var(--blue); letter-spacing: 0.03em; }
   .brand-name span { display: block; color: var(--white); font-size: 1.22rem; font-weight: 900; letter-spacing: 0.005em; }
 
   .navlinks { display: none; gap: 30px; font-weight: 700; font-size: 0.8rem; color: var(--white); letter-spacing: 0.05em; }
+  .navlinks a { position: relative; padding-bottom: 9px; }
   .navlinks a.active, .navlinks a:hover { color: var(--blue); }
+  .navlinks a.active::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px;
+    background: var(--blue); border-radius: 2px;
+  }
   @media(min-width:920px) { .navlinks { display: flex; } }
 
   /* Hero: foto de fondo a pantalla completa */
@@ -650,6 +656,34 @@ window.addEventListener('resize', () => {
   const selT = document.getElementById('select-torneo');
   if(selT && selT.value) renderLlave();
 });
+
+// ---- Scrollspy: resalta en el nav la sección que se está viendo ----
+function setupScrollSpy(){
+  const navLinksEls = Array.from(document.querySelectorAll('.navlinks a'));
+  const items = navLinksEls
+    .map(a => {
+      const href = a.getAttribute('href') || '';
+      if(href === '#') return { a, el: null, isHome: true };
+      if(!href.startsWith('#')) return null; // links a otras páginas (ranking.html), no aplica
+      const el = document.querySelector(href);
+      return el ? { a, el, isHome: false } : null;
+    })
+    .filter(Boolean);
+
+  function updateActive(){
+    const scrollPos = window.scrollY + 140; // compensa el nav sticky
+    let current = items.find(it => it.isHome) || null;
+    items.forEach(it => {
+      if(it.el && it.el.offsetTop <= scrollPos) current = it;
+    });
+    items.forEach(it => it.a.classList.toggle('active', it === current));
+  }
+
+  window.addEventListener('scroll', updateActive, { passive: true });
+  window.addEventListener('resize', updateActive);
+  updateActive();
+}
+setupScrollSpy();
 
 (async function init(){
   try{
