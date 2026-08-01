@@ -95,17 +95,18 @@
     position: relative;
     background: linear-gradient(180deg, rgba(8,11,18,0.3) 0%, rgba(8,11,18,0.92) 80%, var(--bg) 100%),
                 url('hero-banner-mobile.png') center/cover no-repeat;
-    padding: 90px 5vw 60px;
-    min-height: 480px;
+    padding: 90px 5vw 40px;
+    min-height: 520px;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     border-bottom: 2px solid var(--blue);
     overflow: hidden;
   }
-  @media(min-width:640px) { .hero-container { padding: 140px 5vw 110px; min-height: 620px; } }
+  @media(min-width:640px) { .hero-container { padding: 140px 5vw 70px; min-height: 640px; align-items: flex-end; } }
   @media(min-width:920px) {
     .hero-container {
       padding: 220px 5vw 190px; min-height: 800px;
+      align-items: center;
       background: linear-gradient(180deg, rgba(8,11,18,0.3) 0%, rgba(8,11,18,0.92) 80%, var(--bg) 100%),
                   url('hero-banner.png') center/cover no-repeat;
     }
@@ -140,9 +141,9 @@
   .hero-desc { margin-top: 14px; color: #c3cadb; font-size: 0.88rem; max-width: 48ch; line-height: 1.5; font-weight: 400; }
   @media(min-width:640px) { .hero-desc { margin-top: 22px; font-size: 1.08rem; line-height: 1.6; } }
 
-  .hero-cta { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+  .hero-cta { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
   @media(min-width:640px) { .hero-cta { gap: 16px; margin-top: 36px; } }
-  @media(max-width:520px) { .hero-cta .btn { flex: 1 1 auto; padding: 13px 16px; font-size: 0.78rem; } }
+  @media(max-width:520px) { .hero-cta .btn { flex: 1 1 auto; padding: 11px 14px; font-size: 0.68rem; gap: 8px; } }
   
   /* REDISEÑO DE BOTONES / BUTTON STYLES IMPROVED */
   .btn {
