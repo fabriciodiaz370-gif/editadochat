@@ -203,6 +203,7 @@
   </div>
   <div class="select-row">
     <select id="rk-categoria"></select>
+    <select id="rk-genero"></select>
   </div>
   <div id="ranking-content"></div>
 </section>
@@ -221,9 +222,9 @@
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
-  SUPABASE_URL, SUPABASE_ANON_KEY, CATEGORIAS, CATEGORIA_LABEL, LATERALIDADES, POSICION_LABELS,
+  SUPABASE_URL, SUPABASE_ANON_KEY, CATEGORIAS, CATEGORIA_LABEL, LATERALIDADES, POSICION_LABELS, GENEROS,
   loadState, calcularRankingPorCategoria, getJugadorPartidosStats, getAllCategorias, getCategoriaLabel
-} from './shared.js?v=7';
+} from './shared.js?v=9';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let state = null;
@@ -249,11 +250,18 @@ function populateCategoriaSelect(){
   sel.onchange = renderRanking;
 }
 
+function populateGeneroSelect(){
+  const sel = document.getElementById('rk-genero');
+  sel.innerHTML = Object.entries(GENEROS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+  sel.onchange = renderRanking;
+}
+
 function renderRanking(){
   const cat = document.getElementById('rk-categoria').value;
+  const genero = document.getElementById('rk-genero').value;
   const content = document.getElementById('ranking-content');
   const jugadores = state.jugadores || [];
-  const ranking = calcularRankingPorCategoria(jugadores, cat).filter(j=>j.puntos>0);
+  const ranking = calcularRankingPorCategoria(jugadores, cat, genero).filter(j=>j.puntos>0);
 
   if(ranking.length===0){
     content.innerHTML = '<div class="empty-note">Todavía no hay puntos cargados en esta categoría.</div>';
@@ -339,7 +347,7 @@ function abrirPerfil(jugadorId){
       ${avatarHtml(j, true)}
       <div>
         <div class="perfil-nombre">${escapeHtml(j.nombre)}</div>
-        <div class="perfil-sub">${CATEGORIA_LABEL[j.categoria] || j.categoria} · ${LATERALIDADES[j.lateralidad] || ''}</div>
+        <div class="perfil-sub">${CATEGORIA_LABEL[j.categoria] || j.categoria}${j.genero ? ' · ' + (GENEROS[j.genero]||j.genero) : ''} · ${LATERALIDADES[j.lateralidad] || ''}</div>
       </div>
     </div>
     <div class="perfil-stats">
@@ -402,6 +410,7 @@ async function pollUpdates(){
   try{
     state = await loadState(supabase);
     populateCategoriaSelect();
+    populateGeneroSelect();
     renderRanking();
     setInterval(pollUpdates, 3000);
   }catch(e){

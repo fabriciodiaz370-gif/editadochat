@@ -198,12 +198,12 @@
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
-  SUPABASE_URL, SUPABASE_ANON_KEY, CATEGORIAS, CATEGORIA_LABEL, LATERALIDADES,
+  SUPABASE_URL, SUPABASE_ANON_KEY, CATEGORIAS, CATEGORIA_LABEL, LATERALIDADES, GENEROS,
   uid, generateBracket, propagateWinner, roundLabel, loadState, saveState, isAprobada,
   resolverJugadorId, registrarResultadoPartido, getPuntosConfig, DEFAULT_PUNTOS_CONFIG, POSICION_LABELS,
   isCategoriaSuma, getAllCategorias, getCategoriaLabel, getCategoriasSumaConfig,
   RONDA_LABELS, RONDA_OPCIONES, getRondaLabel
-} from './shared.js?v=7';
+} from './shared.js?v=9';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const app = document.getElementById('app');
@@ -858,6 +858,9 @@ function renderJugadoresSection(){
         <select id="new-jug-cat">
           ${CATEGORIAS.map(c=>`<option value="${c}">${CATEGORIA_LABEL[c]}</option>`).join('')}
         </select>
+        <select id="new-jug-genero">
+          ${Object.entries(GENEROS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+        </select>
         <select id="new-jug-lat">
           ${Object.entries(LATERALIDADES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
         </select>
@@ -880,7 +883,9 @@ function renderJugadoresSection(){
     list.innerHTML = `<div class="empty-state">No hay jugadores que coincidan con "${escapeHtml(jugadoresSearchQuery)}".</div>`;
   } else {
     list.innerHTML = jugadoresFiltrados.map(j=>{
-      const puntos = (j.historial||[]).filter(h=>h.categoria===j.categoria).reduce((s,h)=>s+(h.puntos_ganados||0),0);
+      // Suma TODOS los puntos del historial (no solo los de su categoría fija), porque
+      // puede haber sumado puntos jugando en una categoría distinta a la suya propia.
+      const puntos = (j.historial||[]).reduce((s,h)=>s+(h.puntos_ganados||0),0);
       return `
       <div class="jugador-row">
         <div style="display:flex;gap:10px;align-items:center;flex:1;">
@@ -889,7 +894,7 @@ function renderJugadoresSection(){
           </div>
           <div>
             <div class="nombre">${escapeHtml(j.nombre)}</div>
-            <div style="font-size:0.75rem;color:var(--grey);">${CATEGORIA_LABEL[j.categoria] || j.categoria} · ${LATERALIDADES[j.lateralidad] || j.lateralidad} · <span style="color:var(--lime);font-weight:700;">${puntos} pts</span></div>
+            <div style="font-size:0.75rem;color:var(--grey);">${CATEGORIA_LABEL[j.categoria] || j.categoria} · ${j.genero ? (GENEROS[j.genero]||j.genero) : '<span style="color:var(--red);">Sin género</span>'} · ${LATERALIDADES[j.lateralidad] || j.lateralidad} · <span style="color:var(--lime);font-weight:700;">${puntos} pts</span></div>
           </div>
         </div>
         <span style="display:flex;gap:6px;">
@@ -943,10 +948,11 @@ function crearJugador(){
   const nombre = document.getElementById('new-jug-nombre').value.trim();
   if(!nombre){ toast('Ingresá un nombre'); return; }
   const categoria = document.getElementById('new-jug-cat').value;
+  const genero = document.getElementById('new-jug-genero').value;
   const lateralidad = document.getElementById('new-jug-lat').value;
   state.jugadores = state.jugadores || [];
   state.jugadores.push({
-    id: uid('j'), nombre, lateralidad, categoria, foto:'', historial:[]
+    id: uid('j'), nombre, lateralidad, genero, categoria, foto:'', historial:[]
   });
   persist(); render();
 }
@@ -965,6 +971,9 @@ function editarJugador(jId){
           <div class="field"><label>Nombre</label><input id="edit-nombre" value="${escapeHtml(j.nombre)}"></div>
           <div class="field"><label>Categoría</label><select id="edit-cat">
             ${CATEGORIAS.map(c=>`<option value="${c}" ${c===j.categoria?'selected':''}>${CATEGORIA_LABEL[c]}</option>`).join('')}
+          </select></div>
+          <div class="field"><label>Género</label><select id="edit-genero">
+            ${Object.entries(GENEROS).map(([k,v])=>`<option value="${k}" ${k===j.genero?'selected':''}>${v}</option>`).join('')}
           </select></div>
           <div class="field"><label>Lateralidad</label><select id="edit-lat">
             ${Object.entries(LATERALIDADES).map(([k,v])=>`<option value="${k}" ${k===j.lateralidad?'selected':''}>${v}</option>`).join('')}
@@ -1028,6 +1037,7 @@ function editarJugador(jId){
   document.getElementById('btn-save-jugador').onclick = ()=>{
     j.nombre = document.getElementById('edit-nombre').value;
     j.categoria = document.getElementById('edit-cat').value;
+    j.genero = document.getElementById('edit-genero').value;
     j.lateralidad = document.getElementById('edit-lat').value;
     persist(); render();
   };

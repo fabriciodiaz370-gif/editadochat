@@ -77,6 +77,11 @@ export const POSICION_LABELS = {
 export const LATERALIDADES = { 'diestro': 'Diestro', 'zurdo': 'Zurdo' };
 
 // ============================================================
+// Género (para diferenciar el ranking masculino del femenino)
+// ============================================================
+export const GENEROS = { 'masculino': 'Masculino', 'femenino': 'Femenino' };
+
+// ============================================================
 // Ronda de un partido programado ("próximos partidos"). Es un dato
 // que carga el admin a mano al programar el partido, para mostrar
 // en la web pública (ej: "Octavos de Final").
@@ -129,14 +134,14 @@ export function resolverJugadorId(state, nombre, categoria){
 export function seedDemoData(){
   // Jugadores individuales
   const jugadores = [
-    {id:uid('j'), nombre:'Fabricio Gonzalez', lateralidad:'diestro', categoria:'7ma', foto:'', historial:[]},
-    {id:uid('j'), nombre:'Juan Martinez', lateralidad:'zurdo', categoria:'7ma', foto:'', historial:[]},
-    {id:uid('j'), nombre:'Martín López', lateralidad:'diestro', categoria:'7ma', foto:'', historial:[]},
-    {id:uid('j'), nombre:'Lucas Fernández', lateralidad:'diestro', categoria:'7ma', foto:'', historial:[]},
-    {id:uid('j'), nombre:'Nico Ruiz', lateralidad:'zurdo', categoria:'7ma', foto:'', historial:[]},
-    {id:uid('j'), nombre:'Fede García', lateralidad:'diestro', categoria:'7ma', foto:'', historial:[]},
-    {id:uid('j'), nombre:'Tomi Sánchez', lateralidad:'diestro', categoria:'7ma', foto:'', historial:[]},
-    {id:uid('j'), nombre:'Santi Pérez', lateralidad:'zurdo', categoria:'7ma', foto:'', historial:[]},
+    {id:uid('j'), nombre:'Fabricio Gonzalez', lateralidad:'diestro', genero:'masculino', categoria:'7ma', foto:'', historial:[]},
+    {id:uid('j'), nombre:'Juan Martinez', lateralidad:'zurdo', genero:'masculino', categoria:'7ma', foto:'', historial:[]},
+    {id:uid('j'), nombre:'Martín López', lateralidad:'diestro', genero:'masculino', categoria:'7ma', foto:'', historial:[]},
+    {id:uid('j'), nombre:'Lucas Fernández', lateralidad:'diestro', genero:'masculino', categoria:'7ma', foto:'', historial:[]},
+    {id:uid('j'), nombre:'Nico Ruiz', lateralidad:'zurdo', genero:'masculino', categoria:'7ma', foto:'', historial:[]},
+    {id:uid('j'), nombre:'Fede García', lateralidad:'diestro', genero:'masculino', categoria:'7ma', foto:'', historial:[]},
+    {id:uid('j'), nombre:'Tomi Sánchez', lateralidad:'diestro', genero:'masculino', categoria:'7ma', foto:'', historial:[]},
+    {id:uid('j'), nombre:'Santi Pérez', lateralidad:'zurdo', genero:'masculino', categoria:'7ma', foto:'', historial:[]},
   ];
 
   const parejas7ma = [
@@ -249,13 +254,17 @@ export function propagateWinner(rounds, roundIdx, matchIdx, winner){
 // ============================================================
 // Funciones para ranking y puntuación
 // ============================================================
-export function calcularRankingPorCategoria(jugadores, categoria){
-  // En categorías "Suma" el jugador no tiene esa categoría como propia (la suya es
-  // 3ra/4ta/etc.), así que en vez de filtrar por j.categoria tomamos a quienes
-  // sumaron puntos en esa categoría dentro de su historial.
-  const jugadoresCat = isCategoriaSuma(categoria)
-    ? jugadores.filter(j => (j.historial||[]).some(h=>h.categoria===categoria))
-    : jugadores.filter(j=>j.categoria===categoria);
+export function calcularRankingPorCategoria(jugadores, categoria, genero){
+  // Mostramos a cualquier jugador que haya sumado puntos en esta categoría según su
+  // historial, sin depender de su categoría individual fija. Esto es clave porque en
+  // una pareja los dos integrantes pueden tener categorías propias distintas (uno de
+  // 6ta jugando con uno de 7ma, por ejemplo): antes, al filtrar por j.categoria, el
+  // jugador cuya categoría propia no coincidía con la del torneo quedaba afuera del
+  // ranking aunque sí hubiera sumado los puntos.
+  let jugadoresCat = jugadores.filter(j => (j.historial||[]).some(h=>h.categoria===categoria));
+  if(genero){
+    jugadoresCat = jugadoresCat.filter(j=>j.genero===genero);
+  }
   const ranking = jugadoresCat.map(j=>{
     const puntos = (j.historial || [])
       .filter(h=>h.categoria===categoria)
