@@ -242,16 +242,15 @@
   .foot-item + .foot-item { border-left: 1px solid var(--line); margin-left: 14px; padding-left: 14px; }
   .foot-item svg { color: var(--lime); flex-shrink: 0; }
 
-  /* ESTILOS DE LLAVES REDISEÑADAS CON PÁDEL VIBE */
-  .bracket-wrap { 
-    background: var(--card); 
-    border: 1px solid var(--line); 
-    border-radius: 20px; 
-    padding: 36px 28px; 
-    overflow-x: auto; 
-    position: relative;
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
-  }
+
+    .bracket-wrap { 
+      background: var(--card); 
+      border: 1px solid var(--line); 
+      border-radius: 20px; 
+      padding: 36px 28px; 
+      overflow-x: auto; 
+      position: relative;
+    }
   .bracket { 
     display: flex; 
     min-width: 880px; 
@@ -288,15 +287,16 @@
     flex-grow: 1;
     gap: 14px;
   }
+
   .seed-match { 
-    background: var(--card-2); 
+    background: #0e121c; /* Usa un color de tarjeta sólido e idéntico para todos */
     border: 1px solid var(--line); 
     border-radius: 10px; 
     height: 70px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     transition: all 0.2s;
   }
   .seed-match:hover { border-color: var(--blue); transform: scale(1.02); }
