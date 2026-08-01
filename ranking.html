@@ -323,6 +323,10 @@ function abrirPerfil(jugadorId){
     ? '<div class="empty-note">Todavía no jugó torneos con resultado.</div>'
     : historial.map(h=>{
         const t = (state.torneos || []).find(tt=>tt.id===h.torneoId);
+        // El nombre del torneo se guarda directamente en el historial al momento de sumar
+        // los puntos, así se conserva aunque el torneo se borre más adelante. Si es un
+        // registro viejo que no lo tiene, lo buscamos en la lista de torneos actual.
+        const nombreTorneo = h.torneoNombre || t?.nombre || 'Torneo';
         // El nombre del compañero se guarda directamente en el historial al momento de sumar
         // los puntos. Si es un registro viejo que no lo tiene, lo buscamos en la pareja del torneo.
         let companero = h.companero;
@@ -332,7 +336,7 @@ function abrirPerfil(jugadorId){
         }
         return `
           <div class="historial-item">
-            <div class="torneo">${escapeHtml(t?.nombre || 'Torneo')} <span style="color:var(--grey);font-weight:500;">— ${getCategoriaLabel(state,h.categoria)}</span></div>
+            <div class="torneo">${escapeHtml(nombreTorneo)} <span style="color:var(--grey);font-weight:500;">— ${getCategoriaLabel(state,h.categoria)}</span></div>
             <div class="detalle">
               <span class="puesto-tag">${POSICION_LABELS[h.posicion] || h.posicion}</span>
               ${companero ? ` · con ${escapeHtml(companero)}` : ''} · +${h.puntos_ganados} pts

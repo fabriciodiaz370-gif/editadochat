@@ -612,6 +612,7 @@ import {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let state = null;
+let lastStateJson = null;
 
 function chipHtml(categoria){
   const rgb = getCategoriaColorRGB(categoria);
@@ -871,11 +872,6 @@ function populateSelectors(){
       nota.textContent = 'Este torneo es Mixto: la pareja tiene que tener un jugador y una jugadora.';
       generoWrap.style.display = 'flex';
       selJ1.required = true; selJ2.required = true;
-    } else if(genero){
-      nota.style.display = 'block';
-      nota.textContent = `Este torneo es ${TORNEO_GENEROS[genero]}: los dos integrantes de la pareja tienen que ser de ese género.`;
-      generoWrap.style.display = 'none';
-      selJ1.required = false; selJ2.required = false;
     } else {
       nota.style.display = 'none';
       generoWrap.style.display = 'none';
@@ -1100,11 +1096,13 @@ setupScrollSpy();
 (async function init(){
   try{
     state = await loadState(supabase);
+    lastStateJson = JSON.stringify(state);
     renderTorneosGrid();
     populateSelectors();
     renderLlave();
     poblarFiltroCategoriaProximos();
     renderProximosPartidos();
+    setInterval(pollUpdatesPublicas, 4000);
   }catch(e){
     console.error(e);
     const msg = `<div class="empty-note">No se pudo cargar la información. Probá recargar la página. (${escapeHtml(e.message || e)})</div>`;
@@ -1116,6 +1114,29 @@ setupScrollSpy();
     if(partidos) partidos.innerHTML = msg;
   }
 })();
+
+// Refresca periódicamente los datos desde Supabase para que la llave y los
+// próximos partidos se actualicen solos en la web pública (sin recargar la
+// página) cuando el admin carga un resultado. No tocamos el formulario de
+// inscripción ni los selectores para no interrumpir a alguien que lo esté
+// completando en ese momento.
+async function pollUpdatesPublicas(){
+  try{
+    const nuevoState = await loadState(supabase);
+    const nuevoStateJson = JSON.stringify(nuevoState);
+    if(nuevoStateJson !== lastStateJson){
+      state = nuevoState;
+      lastStateJson = nuevoStateJson;
+      renderTorneosGrid();
+      poblarCategoriaPillsLlave(document.getElementById('select-torneo').value);
+      renderLlave();
+      poblarFiltroCategoriaProximos();
+      renderProximosPartidos();
+    }
+  }catch(e){
+    console.error('Error en polling:', e);
+  }
+}
 </script>
 
 </body>

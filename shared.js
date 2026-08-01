@@ -332,31 +332,66 @@ export function getPuntosConfig(state){
   return { ...DEFAULT_PUNTOS_CONFIG, ...(state.config && state.config.puntos ? state.config.puntos : {}) };
 }
 
-// Recorre todas las llaves generadas y cuenta partidos realmente jugados
-// (no cuenta los "bye") para un jugador, sea cual sea la pareja con la que jugó.
+// Recorre el historial PERMANENTE de partidos del jugador (independiente de
+// que el torneo siga existiendo o se haya borrado — ver registrarPartidoJugado).
 export function getJugadorPartidosStats(state, jugadorId){
-  let ganados = 0, perdidos = 0;
+  const jugador = (state.jugadores || []).find(j=>j.id===jugadorId);
+  const historial = jugador?.historialPartidos || [];
+  const ganados = historial.filter(h=>h.resultado==='ganado').length;
+  const perdidos = historial.filter(h=>h.resultado==='perdido').length;
+  return { ganados, perdidos };
+}
+
+// Guarda, para cada integrante de la pareja ganadora y la perdedora, un
+// registro PERMANENTE del resultado de ese partido (con el nombre del rival
+// y del torneo ya "congelados" en el registro). A diferencia de antes, esto
+// no depende de que el torneo siga existiendo: si más adelante se borra el
+// torneo, el jugador no pierde su cuenta de partidos ganados/perdidos.
+// "matchKey" identifica unívocamente el cruce (torneo+categoría+ronda+índice)
+// para no duplicar el registro si se llama más de una vez sobre el mismo
+// partido (por ejemplo, al migrar datos cargados con una versión anterior).
+function registrarPartidoJugado(state, matchKey, torneoId, torneoNombre, categoria, teamGanador, teamPerdedor){
+  const registrar = (team, rivalTeam, resultado) => {
+    if(!team || team.bye) return;
+    [team.j1_id, team.j2_id].forEach(jId=>{
+      if(!jId) return;
+      const jugador = state.jugadores.find(j=>j.id===jId);
+      if(!jugador) return;
+      jugador.historialPartidos = jugador.historialPartidos || [];
+      if(jugador.historialPartidos.some(h=>h.matchKey===matchKey)) return; // ya registrado
+      const rival = (rivalTeam && !rivalTeam.bye) ? `${rivalTeam.j1} / ${rivalTeam.j2}` : null;
+      jugador.historialPartidos.push({
+        matchKey, torneoId, torneoNombre, categoria, resultado, rival, fecha: new Date().toISOString()
+      });
+    });
+  };
+  registrar(teamGanador, teamPerdedor, 'ganado');
+  registrar(teamPerdedor, teamGanador, 'perdido');
+}
+
+// Recorre todos los torneos y "rellena" el historial permanente de partidos
+// de cada jugador con los cruces que ya estaban definidos pero que se
+// jugaron antes de que existiera este historial (o que por algún motivo no
+// quedaron registrados). Es seguro llamarla repetidas veces: registrarPartidoJugado
+// no duplica un mismo partido gracias a matchKey.
+function backfillHistorialPartidos(state){
   (state.torneos || []).forEach(t=>{
-    Object.values(t.brackets || {}).forEach(rounds=>{
+    Object.entries(t.brackets || {}).forEach(([categoria, rounds])=>{
       if(!rounds) return;
-      rounds.forEach(round=>{
-        round.forEach(match=>{
+      rounds.forEach((round, ri)=>{
+        round.forEach((match, mi)=>{
           const { teamA, teamB, winner } = match;
-          if(!teamA || !teamB || teamA.bye || teamB.bye) return; // no es un partido real
-          const esA = teamA.j1_id === jugadorId || teamA.j2_id === jugadorId;
-          const esB = teamB.j1_id === jugadorId || teamB.j2_id === jugadorId;
-          if(!esA && !esB) return;
-          if(!winner) return; // todavía no se jugó
-          const gano = (esA && winner.id === teamA.id) || (esB && winner.id === teamB.id);
-          if(gano) ganados++; else perdidos++;
+          if(!teamA || !teamB || teamA.bye || teamB.bye || !winner) return;
+          const loser = winner.id === teamA.id ? teamB : teamA;
+          const matchKey = `${t.id}::${categoria}::${ri}::${mi}`;
+          registrarPartidoJugado(state, matchKey, t.id, t.nombre, categoria, winner, loser);
         });
       });
     });
   });
-  return { ganados, perdidos };
 }
 
-function awardPoints(state, torneoId, categoria, parejaId, puntos, posicion){
+function awardPoints(state, torneoId, torneoNombre, categoria, parejaId, puntos, posicion){
   if(!puntos) return;
   const torneo = state.torneos.find(t=>t.id===torneoId);
   if(!torneo) return;
@@ -367,13 +402,14 @@ function awardPoints(state, torneoId, categoria, parejaId, puntos, posicion){
     if(!jId) return;
     const jugador = state.jugadores.find(j=>j.id===jId);
     if(jugador){
-      // Guardamos el nombre del compañero directamente en el historial (y no solo el parejaId)
-      // para que quede fijo aunque más adelante se borre o edite esa pareja.
+      // Guardamos el nombre del compañero y del torneo directamente en el historial
+      // (y no solo los ids) para que quede fijo aunque más adelante se borre o
+      // edite esa pareja, o incluso se borre el torneo entero.
       const companero = (pareja.j1_id === jId) ? pareja.j2 : pareja.j1;
       const companeroId = (pareja.j1_id === jId) ? pareja.j2_id : pareja.j1_id;
       jugador.historial = jugador.historial || [];
       jugador.historial.push({
-        torneoId, categoria, parejaId, puntos_ganados: puntos, posicion, fecha: new Date().toISOString(),
+        torneoId, torneoNombre, categoria, parejaId, puntos_ganados: puntos, posicion, fecha: new Date().toISOString(),
         companero: companero || null, companeroId: companeroId || null
       });
     }
@@ -384,7 +420,9 @@ function awardPoints(state, torneoId, categoria, parejaId, puntos, posicion){
 // El PERDEDOR de ese cruce queda eliminado ahí, así que recibe los puntos
 // de esa posición (semifinalista, cuartos, etc.) según la configuración.
 // Si el cruce era la final, además el GANADOR recibe los puntos de campeón.
-export function registrarResultadoPartido(state, torneoId, categoria, rounds, roundIdx, winner, loser){
+// También deja un registro permanente de "partido ganado/perdido" para
+// ambas parejas, que sobrevive aunque el torneo se borre más adelante.
+export function registrarResultadoPartido(state, torneoId, torneoNombre, categoria, rounds, roundIdx, matchIdx, winner, loser){
   const puntos = getPuntosConfig(state);
   const totalRounds = rounds.length;
   const esFinal = roundIdx === totalRounds - 1;
@@ -393,11 +431,14 @@ export function registrarResultadoPartido(state, torneoId, categoria, rounds, ro
 
   if(loser && !loser.bye){
     const posicion = esFinal ? 'subcampeon' : posicionMap[fromEnd];
-    if(posicion) awardPoints(state, torneoId, categoria, loser.id, puntos[posicion], posicion);
+    if(posicion) awardPoints(state, torneoId, torneoNombre, categoria, loser.id, puntos[posicion], posicion);
   }
   if(esFinal && winner && !winner.bye){
-    awardPoints(state, torneoId, categoria, winner.id, puntos.campeon, 'campeon');
+    awardPoints(state, torneoId, torneoNombre, categoria, winner.id, puntos.campeon, 'campeon');
   }
+
+  const matchKey = `${torneoId}::${categoria}::${roundIdx}::${matchIdx}`;
+  registrarPartidoJugado(state, matchKey, torneoId, torneoNombre, categoria, winner, loser);
 }
 
 export function roundLabel(idx, total){
@@ -424,6 +465,11 @@ export async function loadState(supabase){
       if(t.inscripcionAbierta === undefined) t.inscripcionAbierta = true;
       if(t.genero === undefined) t.genero = null; // torneos viejos: sin restricción de género hasta que el admin lo configure
     });
+    // Completa el historial permanente de partidos ganados/perdidos con los cruces
+    // que ya estaban jugados antes de que existiera este registro (o algún torneo
+    // que se haya guardado sin pasar por registrarResultadoPartido). Así, cuando
+    // se borre un torneo, esos partidos ya quedaron a salvo en cada jugador.
+    backfillHistorialPartidos(state);
     return state;
   }
   const seeded = seedDemoData();
