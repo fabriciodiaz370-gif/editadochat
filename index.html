@@ -103,11 +103,6 @@
   }
   .cat-pill:hover { color: var(--white); border-color: #333c4f; }
   .cat-pill.active { background: var(--lime-dim); border-color: var(--lime); color: var(--lime); }
-  .calendar-btn {
-    display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; flex-shrink: 0;
-    background: var(--card-2); border: 1px solid var(--line); border-radius: 8px; color: var(--grey); cursor: pointer; transition: all .15s ease;
-  }
-  .calendar-btn:hover { color: var(--lime); border-color: var(--lime); }
   .match-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
   .match-head { display: flex; align-items: center; gap: 10px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em; }
   .cat-tag { padding: 4px 9px; border-radius: 6px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.45); color: var(--blue); text-transform: uppercase; font-weight: 800; }
@@ -222,6 +217,7 @@
   @media(min-width:860px){ .inscripcion-wrap { grid-template-columns: 1fr 1.1fr; } }
   form.inscripcion { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row:has(#insc-cat-field[style*="display: none"]) { grid-template-columns: 1fr; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 0.7rem; color: var(--grey); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
 
@@ -278,9 +274,6 @@
     </div>
     <div style="display:flex; align-items:center; gap:14px;">
       <div class="cat-pills" id="cat-pills-proximos"></div>
-      <a href="#proximos" class="calendar-btn" title="Ver todos">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      </a>
     </div>
   </div>
   <div class="partidos-grid" id="partidos-grid">
@@ -297,9 +290,9 @@
     </div>
     <div style="display:flex; gap:10px;">
       <select id="select-torneo"></select>
-      <select id="select-categoria"></select>
     </div>
   </div>
+  <div class="cat-pills" id="cat-pills-llave" style="margin-bottom:20px;"></div>
   <div id="llave-content"></div>
 </section>
 
@@ -324,7 +317,7 @@
       </div>
       <div class="form-row">
         <div class="field"><label>Torneo</label><select id="insc-torneo" required></select></div>
-        <div class="field"><label>Categoría</label><select id="insc-categoria" required></select></div>
+        <div class="field" id="insc-cat-field"><label>Categoría</label><select id="insc-categoria" required></select></div>
       </div>
       <div class="form-row" id="insc-suma-cats" style="display:none;">
         <div class="field"><label>Categoría de Jugador 1</label><select id="insc-cat-j1"></select></div>
@@ -508,11 +501,39 @@ function renderProximosPartidos(){
   }).join('');
 }
 
+let catLlaveActiva = null;
+
+function poblarCategoriaPillsLlave(torneoId){
+  const cont = document.getElementById('cat-pills-llave');
+  const t = state.torneos.find(x=>x.id===torneoId);
+  const cats = t?.categorias || [];
+
+  if(cats.length <= 1){
+    cont.style.display = 'none';
+    cont.innerHTML = '';
+    catLlaveActiva = cats[0] || null;
+    return;
+  }
+
+  cont.style.display = 'flex';
+  if(!cats.includes(catLlaveActiva)) catLlaveActiva = cats[0];
+  cont.innerHTML = cats.map(c=>
+    `<button type="button" class="cat-pill${c===catLlaveActiva?' active':''}" data-cat="${c}">${getCategoriaLabel(state,c).toUpperCase()}</button>`
+  ).join('');
+  cont.querySelectorAll('.cat-pill').forEach(btn=>{
+    btn.onclick = ()=>{
+      catLlaveActiva = btn.dataset.cat;
+      cont.querySelectorAll('.cat-pill').forEach(b=>b.classList.toggle('active', b===btn));
+      renderLlave();
+    };
+  });
+}
+
 function populateSelectors(){
   const selT = document.getElementById('select-torneo');
-  const selC = document.getElementById('select-categoria');
   const inscT = document.getElementById('insc-torneo');
   const inscC = document.getElementById('insc-categoria');
+  const inscCField = document.getElementById('insc-cat-field');
   const inscripcionWrap = document.getElementById('inscripcion-wrap');
   const inscripcionCerradaMsg = document.getElementById('inscripcion-cerrada-msg');
 
@@ -531,6 +552,11 @@ function populateSelectors(){
   function refreshCatOptions(torneoId, target){
     const t = state.torneos.find(x=>x.id===torneoId);
     target.innerHTML = (t?.categorias||[]).map(c=>`<option value="${c}">${getCategoriaLabel(state,c)}</option>`).join('');
+    // Si el torneo tiene una sola categoría, no tiene sentido pedir que la elijan: la ocultamos.
+    if(target === inscC){
+      const soloUna = (t?.categorias||[]).length <= 1;
+      inscCField.style.display = soloUna ? 'none' : '';
+    }
   }
 
   function refreshSumaFields(){
@@ -549,14 +575,13 @@ function populateSelectors(){
     }
   }
 
-  refreshCatOptions(selT.value, selC);
+  poblarCategoriaPillsLlave(selT.value);
   if(torneosConInscripcion.length > 0){
     refreshCatOptions(inscT.value, inscC);
     refreshSumaFields();
   }
 
-  selT.onchange = ()=>{ refreshCatOptions(selT.value, selC); renderLlave(); };
-  selC.onchange = renderLlave;
+  selT.onchange = ()=>{ poblarCategoriaPillsLlave(selT.value); renderLlave(); };
   inscT.onchange = ()=>{ refreshCatOptions(inscT.value, inscC); refreshSumaFields(); };
   inscC.onchange = refreshSumaFields;
 }
@@ -569,7 +594,7 @@ function teamLabel(team){
 
 function renderLlave(){
   const t = state.torneos.find(x=>x.id===document.getElementById('select-torneo').value);
-  const cat = document.getElementById('select-categoria').value;
+  const cat = catLlaveActiva;
   const content = document.getElementById('llave-content');
   if(!t || !cat){ content.innerHTML = '<div class="empty-note">Elegí un torneo y una categoría.</div>'; return; }
   const rounds = t.brackets[cat];
