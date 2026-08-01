@@ -137,24 +137,63 @@
   .loading{padding:60px;text-align:center;color:var(--grey);}
 
   .file-input{display:none;}
+
+  /* ---- Login ---- */
+  .login-wrap{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .login-card{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;padding:30px 26px;
+    width:100%;max-width:360px;
+  }
+  .login-brand{
+    display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:900;
+    font-size:0.95rem;margin-bottom:26px;
+  }
+  .login-brand .dot{width:10px;height:10px;border-radius:50%;background:var(--lime);flex-shrink:0;}
+  .login-card .field{margin-bottom:14px;}
+  .login-error{
+    color:var(--red);font-size:0.8rem;font-weight:600;min-height:18px;margin-bottom:6px;
+  }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="brand"><span class="dot"></span>PÁDEL MIRAMAR · ADMIN</div>
-  <a class="navlink" href="index.html">Ver sitio público →</a>
-</nav>
-
-<div class="section-tabs">
-  <button class="section-tab active" data-section="torneos">Torneos & Llave</button>
-  <button class="section-tab" data-section="partidos">Partidos</button>
-  <button class="section-tab" data-section="jugadores">Jugadores</button>
-  <button class="section-tab" data-section="config">Configuración</button>
+<div id="login-screen" class="login-wrap">
+  <form id="login-form" class="login-card">
+    <div class="login-brand"><span class="dot"></span>PÁDEL MIRAMAR · ADMIN</div>
+    <div class="field">
+      <label>Email</label>
+      <input id="login-email" type="email" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input id="login-password" type="password" autocomplete="current-password" required>
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <button type="submit" class="btn btn-primary btn-block" id="login-btn">Ingresar</button>
+  </form>
 </div>
 
-<div id="app" class="loading">Cargando datos…</div>
-<div class="toast" id="toast">Guardado ✓</div>
+<div id="admin-panel" style="display:none;">
+  <nav>
+    <div class="brand"><span class="dot"></span>PÁDEL MIRAMAR · ADMIN</div>
+    <div style="display:flex;gap:10px;">
+      <a class="navlink" href="index.html">Ver sitio público →</a>
+      <button class="navlink" id="btn-logout" style="cursor:pointer;">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <div class="section-tabs">
+    <button class="section-tab active" data-section="torneos">Torneos & Llave</button>
+    <button class="section-tab" data-section="partidos">Partidos</button>
+    <button class="section-tab" data-section="jugadores">Jugadores</button>
+    <button class="section-tab" data-section="config">Configuración</button>
+  </div>
+
+  <div id="app" class="loading">Cargando datos…</div>
+  <div class="toast" id="toast">Guardado ✓</div>
+</div>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -1009,8 +1048,8 @@ async function pollUpdatesAdmin(){
   }
 }
 
-// ---- INIT ----
-(async function init(){
+// ---- INIT (datos del panel, se llama recién después de loguearse) ----
+async function initApp(){
   try{
     state = await loadState(supabase);
     if(!state.jugadores) state.jugadores = [];
@@ -1021,6 +1060,66 @@ async function pollUpdatesAdmin(){
   }catch(e){
     console.error(e);
     app.innerHTML = `<div class="panel"><div class="empty-state">Error conectando con la base de datos.</div></div>`;
+  }
+}
+
+// ---- AUTENTICACIÓN ----
+const loginScreen = document.getElementById('login-screen');
+const adminPanel = document.getElementById('admin-panel');
+const loginForm = document.getElementById('login-form');
+const loginError = document.getElementById('login-error');
+const loginBtn = document.getElementById('login-btn');
+
+let appStarted = false;
+
+function showLogin(){
+  loginScreen.style.display = 'flex';
+  adminPanel.style.display = 'none';
+}
+
+function showAdmin(){
+  loginScreen.style.display = 'none';
+  adminPanel.style.display = 'block';
+  if(!appStarted){
+    appStarted = true;
+    initApp();
+  }
+}
+
+loginForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  loginError.textContent = '';
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Ingresando…';
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  loginBtn.disabled = false;
+  loginBtn.textContent = 'Ingresar';
+  if(error){
+    loginError.textContent = 'Email o contraseña incorrectos.';
+    return;
+  }
+  showAdmin();
+});
+
+document.getElementById('btn-logout').onclick = async ()=>{
+  await supabase.auth.signOut();
+  location.reload();
+};
+
+supabase.auth.onAuthStateChange((event)=>{
+  if(event === 'SIGNED_OUT'){
+    showLogin();
+  }
+});
+
+(async function checkSession(){
+  const { data: { session } } = await supabase.auth.getSession();
+  if(session){
+    showAdmin();
+  }else{
+    showLogin();
   }
 })();
 </script>
