@@ -82,6 +82,20 @@ export const LATERALIDADES = { 'diestro': 'Diestro', 'zurdo': 'Zurdo' };
 export const GENEROS = { 'masculino': 'Masculino', 'femenino': 'Femenino' };
 
 // ============================================================
+// Género de TORNEO (a diferencia del género de un jugador, un torneo
+// puede ser masculino, femenino o mixto). Esto determina qué jugadores
+// se pueden inscribir en él:
+//   - masculino/femenino: las dos personas de la pareja tienen que ser
+//     de ese género.
+//   - mixto: la pareja tiene que tener un jugador y una jugadora.
+// ============================================================
+export const TORNEO_GENEROS = { 'masculino': 'Masculino', 'femenino': 'Femenino', 'mixto': 'Mixto' };
+
+export function getTorneoGeneroLabel(codigo){
+  return TORNEO_GENEROS[codigo] || '';
+}
+
+// ============================================================
 // Ronda de un partido programado ("próximos partidos"). Es un dato
 // que carga el admin a mano al programar el partido, para mostrar
 // en la web pública (ej: "Octavos de Final").
@@ -116,16 +130,54 @@ export function isAprobada(p){
 // Así toda pareja (inscripta desde la web o cargada por el admin) queda
 // vinculada a jugadores reales que después aparecen en "Jugadores" y suman
 // puntos de ranking.
-export function resolverJugadorId(state, nombre, categoria){
+//
+// Si se pasa "generoEsperado" (porque el torneo exige un género puntual para
+// esta persona), se valida contra el género ya guardado del jugador:
+//   - Si el jugador ya existe y su género no coincide -> devuelve error y NO
+//     crea/modifica nada, para no mezclar categorías masculinas/femeninas.
+//   - Si el jugador ya existe pero no tenía género cargado (dato viejo) -> se
+//     completa con el esperado.
+//   - Si el jugador es nuevo -> se crea con ese género.
+// Devuelve { id, error }. Si error no es null, "id" es null y no hay que usarlo.
+export function resolverJugadorId(state, nombre, categoria, generoEsperado){
   const nombreNorm = (nombre || '').trim();
-  if(!nombreNorm) return null;
+  if(!nombreNorm) return { id: null, error: null };
   state.jugadores = state.jugadores || [];
   let jugador = state.jugadores.find(j => (j.nombre||'').trim().toLowerCase() === nombreNorm.toLowerCase());
   if(!jugador){
-    jugador = { id: uid('j'), nombre: nombreNorm, lateralidad:'diestro', categoria, foto:'', historial:[] };
+    jugador = { id: uid('j'), nombre: nombreNorm, lateralidad:'diestro', genero: generoEsperado || '', categoria, foto:'', historial:[] };
     state.jugadores.push(jugador);
+    return { id: jugador.id, error: null };
   }
-  return jugador.id;
+  if(generoEsperado){
+    if(jugador.genero && jugador.genero !== generoEsperado){
+      return {
+        id: null,
+        error: `${jugador.nombre} ya está registrado como ${GENEROS[jugador.genero] || jugador.genero}, no puede anotarse como ${GENEROS[generoEsperado] || generoEsperado}.`
+      };
+    }
+    if(!jugador.genero) jugador.genero = generoEsperado;
+  }
+  return { id: jugador.id, error: null };
+}
+
+// Dado el género configurado en el torneo, calcula qué género le corresponde
+// a cada integrante de la pareja:
+//   - "masculino"/"femenino": los dos tienen que ser de ese género (no hace
+//     falta elegir nada en el formulario).
+//   - "mixto": hay que elegir el género de cada uno (generoSelJ1/J2) y tienen
+//     que ser distintos entre sí (un jugador y una jugadora).
+//   - sin configurar (torneos viejos): no se exige nada.
+// Devuelve { generoJ1, generoJ2, error }.
+export function resolverGenerosPareja(torneoGenero, generoSelJ1, generoSelJ2){
+  if(torneoGenero === 'masculino') return { generoJ1: 'masculino', generoJ2: 'masculino', error: null };
+  if(torneoGenero === 'femenino') return { generoJ1: 'femenino', generoJ2: 'femenino', error: null };
+  if(torneoGenero === 'mixto'){
+    if(!generoSelJ1 || !generoSelJ2) return { generoJ1: null, generoJ2: null, error: 'Elegí el género de cada jugador.' };
+    if(generoSelJ1 === generoSelJ2) return { generoJ1: null, generoJ2: null, error: 'En un torneo Mixto la pareja tiene que tener un jugador y una jugadora.' };
+    return { generoJ1: generoSelJ1, generoJ2: generoSelJ2, error: null };
+  }
+  return { generoJ1: null, generoJ2: null, error: null };
 }
 
 // ============================================================
@@ -158,6 +210,7 @@ export function seedDemoData(){
     lugar: 'Padel Club Norte',
     estado: 'curso',
     inscripcionAbierta: false,
+    genero: 'masculino',
     categorias: ['7ma','6ta','5ta'],
     parejas: { '7ma': parejas7ma, '6ta': [], '5ta': [] },
     brackets: { '7ma': null, '6ta': null, '5ta': null },
@@ -185,6 +238,7 @@ export function seedDemoData(){
   ].map(t=>({
     id: uid('t'), nombre:t.nombre, fecha:t.fecha, lugar:t.lugar, estado:'abierto',
     inscripcionAbierta: true,
+    genero: 'masculino',
     categorias:t.categorias,
     parejas: Object.fromEntries(t.categorias.map(c=>[c,[]])),
     brackets: Object.fromEntries(t.categorias.map(c=>[c,null])),
@@ -368,6 +422,7 @@ export async function loadState(supabase){
     (state.torneos || []).forEach(t=>{
       if(!t.partidos) t.partidos = [];
       if(t.inscripcionAbierta === undefined) t.inscripcionAbierta = true;
+      if(t.genero === undefined) t.genero = null; // torneos viejos: sin restricción de género hasta que el admin lo configure
     });
     return state;
   }

@@ -199,11 +199,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   SUPABASE_URL, SUPABASE_ANON_KEY, CATEGORIAS, CATEGORIA_LABEL, LATERALIDADES, GENEROS,
+  TORNEO_GENEROS, getTorneoGeneroLabel, resolverGenerosPareja,
   uid, generateBracket, propagateWinner, roundLabel, loadState, saveState, isAprobada,
   resolverJugadorId, registrarResultadoPartido, getPuntosConfig, DEFAULT_PUNTOS_CONFIG, POSICION_LABELS,
   isCategoriaSuma, getAllCategorias, getCategoriaLabel, getCategoriasSumaConfig,
   RONDA_LABELS, RONDA_OPCIONES, getRondaLabel
-} from './shared.js?v=9';
+} from './shared.js?v=10';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const app = document.getElementById('app');
@@ -295,7 +296,8 @@ function renderTorneosSection(){
       const div = document.createElement('div');
       div.className = 'torneo-item' + (tr.id===activeTorneoId ? ' active' : '');
       const totalParejas = Object.values(tr.parejas).reduce((a,arr)=>a+arr.length,0);
-      div.innerHTML = `${tr.nombre}<small>${tr.fecha} · ${totalParejas} parejas ${tr.inscripcionAbierta ? '· <span style="color:var(--lime);">insc. abierta</span>' : '· <span style="color:var(--red);">insc. cerrada</span>'}</small>`;
+      const generoTxt = tr.genero ? TORNEO_GENEROS[tr.genero] : 'sin género';
+      div.innerHTML = `${tr.nombre}<small>${tr.fecha} · ${totalParejas} parejas · ${generoTxt} ${tr.inscripcionAbierta ? '· <span style="color:var(--lime);">insc. abierta</span>' : '· <span style="color:var(--red);">insc. cerrada</span>'}</small>`;
       div.onclick = ()=>{ activeTorneoId = tr.id; render(); };
       list.appendChild(div);
     });
@@ -327,6 +329,17 @@ function renderTorneoPanel(t){
         ${getAllCategorias(state).map(c=>`<div class="check-pill ${t.categorias.includes(c)?'active':''}" data-cat="${c}">${getCategoriaLabel(state,c)}</div>`).join('')}
       </div>
       <div style="color:var(--grey);font-size:0.72rem;margin-top:6px;">Las categorías "Suma" (Suma 11, Suma 14, etc.) se crean y administran desde la pestaña Configuración.</div>
+      <label style="margin-top:14px;">Género del torneo</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${Object.entries(TORNEO_GENEROS).map(([k,v])=>`<div class="check-pill ${t.genero===k?'active':''}" data-genero="${k}">${v}</div>`).join('')}
+      </div>
+      <div style="color:var(--grey);font-size:0.78rem;margin-top:8px;">
+        ${t.genero==='mixto'
+          ? 'Cada pareja tiene que tener un jugador y una jugadora.'
+          : t.genero
+            ? `Solo se van a poder anotar jugadores de género ${TORNEO_GENEROS[t.genero].toLowerCase()}.`
+            : '<span style="color:var(--red);">Sin género configurado — elegí uno para poder controlar quién se inscribe.</span>'}
+      </div>
       <label style="margin-top:14px;">Inscripciones</label>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <div class="check-pill ${t.inscripcionAbierta ? 'active' : ''}" id="btn-insc-abierta">Abiertas</div>
@@ -367,6 +380,17 @@ function wireTorneoPanel(t){
   document.getElementById('btn-insc-cerrada').onclick = ()=>{
     t.inscripcionAbierta = false; persist(); render();
   };
+
+  document.querySelectorAll('.check-pill[data-genero]').forEach(el=>{
+    el.onclick = ()=>{
+      const nuevoGenero = el.dataset.genero;
+      if(nuevoGenero === t.genero) return;
+      const hayParejas = Object.values(t.parejas||{}).some(arr=>(arr||[]).length>0);
+      if(hayParejas && !confirm('Ya hay parejas cargadas en este torneo. Cambiar el género no las va a validar retroactivamente ¿Continuar?')) return;
+      t.genero = nuevoGenero;
+      persist(); render();
+    };
+  });
 
   document.querySelectorAll('.check-pill[data-cat]').forEach(el=>{
     el.onclick = ()=>{
@@ -498,12 +522,22 @@ function renderCategoriaContent(t, cat){
             <select id="new-j1-cat" title="Categoría de Jugador 1">${CATEGORIAS.map(c=>`<option value="${c}">${CATEGORIA_LABEL[c]}</option>`).join('')}</select>
             <select id="new-j2-cat" title="Categoría de Jugador 2">${CATEGORIAS.map(c=>`<option value="${c}">${CATEGORIA_LABEL[c]}</option>`).join('')}</select>
           ` : ''}
+          ${t.genero==='mixto' ? `
+            <select id="new-j1-genero" title="Género de Jugador 1">
+              <option value="masculino">Jugador 1: Masculino</option>
+              <option value="femenino">Jugador 1: Femenino</option>
+            </select>
+            <select id="new-j2-genero" title="Género de Jugador 2">
+              <option value="femenino">Jugador 2: Femenino</option>
+              <option value="masculino">Jugador 2: Masculino</option>
+            </select>
+          ` : ''}
           <button class="btn btn-primary btn-sm" id="btn-add-pareja">+ Agregar</button>
         </div>
         <datalist id="jugadores-datalist">
           ${(state.jugadores || []).map(j=>`<option value="${escapeHtml(j.nombre)}"></option>`).join('')}
         </datalist>
-        <div style="color:var(--grey);font-size:0.72rem;margin-top:4px;">Si el jugador ya está registrado, empezá a escribir su nombre y elegilo de la lista para no duplicarlo.${esSuma ? ' Elegí también la categoría individual de cada jugador.' : ''}</div>
+        <div style="color:var(--grey);font-size:0.72rem;margin-top:4px;">Si el jugador ya está registrado, empezá a escribir su nombre y elegilo de la lista para no duplicarlo.${esSuma ? ' Elegí también la categoría individual de cada jugador.' : ''}${t.genero==='mixto' ? ' Elegí también el género de cada jugador (uno tiene que ser Masculino y el otro Femenino).' : t.genero ? ` Este torneo es ${TORNEO_GENEROS[t.genero].toLowerCase()}: los dos jugadores tienen que ser de ese género.` : ''}</div>
         <button class="btn btn-outline btn-block" id="btn-generar-llave" style="margin-top:16px;" ${parejas.length<2?'disabled':''}>
           ${bracket ? 'Regenerar llave' : 'Generar llave'}
         </button>
@@ -533,10 +567,21 @@ function wireCategoriaContent(t, cat){
     const catJ2El = document.getElementById('new-j2-cat');
     const cat_j1 = esSuma ? catJ1El.value : null;
     const cat_j2 = esSuma ? catJ2El.value : null;
+
+    const generoJ1El = document.getElementById('new-j1-genero');
+    const generoJ2El = document.getElementById('new-j2-genero');
+    const { generoJ1, generoJ2, error: errorGenero } = resolverGenerosPareja(
+      t.genero, generoJ1El ? generoJ1El.value : null, generoJ2El ? generoJ2El.value : null
+    );
+    if(errorGenero){ toast(errorGenero); return; }
+
     // Para Suma, cada jugador se resuelve con su propia categoría (no con la del torneo)
-    const j1_id = resolverJugadorId(state, j1, esSuma ? cat_j1 : cat);
-    const j2_id = resolverJugadorId(state, j2, esSuma ? cat_j2 : cat);
-    const nuevaPareja = { id: uid('p'), j1_id, j2_id, j1, j2, telefono:'', estado:'aprobada' };
+    const r1 = resolverJugadorId(state, j1, esSuma ? cat_j1 : cat, generoJ1);
+    if(r1.error){ toast(r1.error); return; }
+    const r2 = resolverJugadorId(state, j2, esSuma ? cat_j2 : cat, generoJ2);
+    if(r2.error){ toast(r2.error); return; }
+
+    const nuevaPareja = { id: uid('p'), j1_id: r1.id, j2_id: r2.id, j1, j2, telefono:'', estado:'aprobada' };
     if(esSuma){ nuevaPareja.cat_j1 = cat_j1; nuevaPareja.cat_j2 = cat_j2; }
     t.parejas[cat].push(nuevaPareja);
     persist(); render();
@@ -620,6 +665,7 @@ function crearTorneo(){
   if(!nombre) return;
   const nuevo = {
     id: uid('t'), nombre, fecha:'', lugar:'', estado:'abierto', inscripcionAbierta: true,
+    genero: 'masculino', // se puede cambiar después desde el panel del torneo
     categorias: [], parejas:{}, brackets:{}, partidos: []
   };
   state.torneos.push(nuevo);

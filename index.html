@@ -552,6 +552,21 @@
         <div class="field"><label>Categoría de Jugador 1</label><select id="insc-cat-j1"></select></div>
         <div class="field"><label>Categoría de Jugador 2</label><select id="insc-cat-j2"></select></div>
       </div>
+      <div class="empty-note" id="insc-genero-nota" style="display:none;margin-bottom:14px;"></div>
+      <div class="form-row" id="insc-genero-fields" style="display:none;">
+        <div class="field"><label>Género de Jugador 1</label>
+          <select id="insc-genero-j1">
+            <option value="masculino">Masculino</option>
+            <option value="femenino">Femenino</option>
+          </select>
+        </div>
+        <div class="field"><label>Género de Jugador 2</label>
+          <select id="insc-genero-j2">
+            <option value="femenino">Femenino</option>
+            <option value="masculino">Masculino</option>
+          </select>
+        </div>
+      </div>
       <div class="field"><label>Teléfono de contacto</label><input type="tel" id="telefono" required placeholder="11 5555-5555"></div>
       <button type="submit" class="btn btn-primary btn-action">Enviar postulación</button>
     </form>
@@ -589,10 +604,11 @@
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
-  SUPABASE_URL, SUPABASE_ANON_KEY, CATEGORIAS, CATEGORIA_LABEL,
+  SUPABASE_URL, SUPABASE_ANON_KEY, CATEGORIAS, CATEGORIA_LABEL, GENEROS,
+  TORNEO_GENEROS, getTorneoGeneroLabel, resolverGenerosPareja,
   uid, roundLabel, loadState, saveState, isAprobada, resolverJugadorId,
   isCategoriaSuma, getCategoriaLabel, getRondaLabel
-} from './shared.js?v=9';
+} from './shared.js?v=10';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let state = null;
@@ -608,7 +624,10 @@ function renderTorneosGrid(){
   grid.innerHTML = state.torneos.map(t=>{
     return `
       <div class="torneo-card">
-        <div><span class="badge ${t.inscripcionAbierta ? 'badge-abierto' : 'badge-cerrado'}">${t.inscripcionAbierta ? 'Inscripción Abierta' : 'Inscripción Cerrada'}</span></div>
+        <div>
+          <span class="badge ${t.inscripcionAbierta ? 'badge-abierto' : 'badge-cerrado'}">${t.inscripcionAbierta ? 'Inscripción Abierta' : 'Inscripción Cerrada'}</span>
+          ${t.genero ? `<span class="badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);">${TORNEO_GENEROS[t.genero]}</span>` : ''}
+        </div>
         <h3 style="font-family:var(--font-display);">${t.nombre}</h3>
         <div class="torneo-meta">
           <div class="torneo-meta-item">
@@ -840,14 +859,39 @@ function populateSelectors(){
     }
   }
 
+  function refreshGeneroFields(){
+    const nota = document.getElementById('insc-genero-nota');
+    const generoWrap = document.getElementById('insc-genero-fields');
+    const selJ1 = document.getElementById('insc-genero-j1');
+    const selJ2 = document.getElementById('insc-genero-j2');
+    const t = state.torneos.find(x=>x.id===inscT.value);
+    const genero = t?.genero || null;
+    if(genero === 'mixto'){
+      nota.style.display = 'block';
+      nota.textContent = 'Este torneo es Mixto: la pareja tiene que tener un jugador y una jugadora.';
+      generoWrap.style.display = 'flex';
+      selJ1.required = true; selJ2.required = true;
+    } else if(genero){
+      nota.style.display = 'block';
+      nota.textContent = `Este torneo es ${TORNEO_GENEROS[genero]}: los dos integrantes de la pareja tienen que ser de ese género.`;
+      generoWrap.style.display = 'none';
+      selJ1.required = false; selJ2.required = false;
+    } else {
+      nota.style.display = 'none';
+      generoWrap.style.display = 'none';
+      selJ1.required = false; selJ2.required = false;
+    }
+  }
+
   poblarCategoriaPillsLlave(selT.value);
   if(torneosConInscripcion.length > 0){
     refreshCatOptions(inscT.value, inscC);
     refreshSumaFields();
+    refreshGeneroFields();
   }
 
   selT.onchange = ()=>{ poblarCategoriaPillsLlave(selT.value); renderLlave(); };
-  inscT.onchange = ()=>{ refreshCatOptions(inscT.value, inscC); refreshSumaFields(); };
+  inscT.onchange = ()=>{ refreshCatOptions(inscT.value, inscC); refreshSumaFields(); refreshGeneroFields(); };
   inscC.onchange = refreshSumaFields;
 }
 
@@ -978,10 +1022,18 @@ document.getElementById('form-inscripcion').addEventListener('submit', async fun
     if(!cat_j1 || !cat_j2){ alert('Elegí la categoría de cada jugador.'); return; }
   }
 
+  const generoSelJ1 = document.getElementById('insc-genero-j1').value;
+  const generoSelJ2 = document.getElementById('insc-genero-j2').value;
+  const { generoJ1, generoJ2, error: errorGenero } = resolverGenerosPareja(t.genero, generoSelJ1, generoSelJ2);
+  if(errorGenero){ alert(errorGenero); return; }
+
   t.parejas[cat] = t.parejas[cat] || [];
-  const j1_id = resolverJugadorId(state, j1, esSuma ? cat_j1 : cat);
-  const j2_id = resolverJugadorId(state, j2, esSuma ? cat_j2 : cat);
-  const nuevaPareja = { id: uid('p'), j1_id, j2_id, j1, j2, telefono, estado:'pendiente' };
+  const r1 = resolverJugadorId(state, j1, esSuma ? cat_j1 : cat, generoJ1);
+  if(r1.error){ alert(r1.error); return; }
+  const r2 = resolverJugadorId(state, j2, esSuma ? cat_j2 : cat, generoJ2);
+  if(r2.error){ alert(r2.error); return; }
+
+  const nuevaPareja = { id: uid('p'), j1_id: r1.id, j2_id: r2.id, j1, j2, telefono, estado:'pendiente' };
   if(esSuma){ nuevaPareja.cat_j1 = cat_j1; nuevaPareja.cat_j2 = cat_j2; }
   t.parejas[cat].push(nuevaPareja);
   
