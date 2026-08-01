@@ -3,46 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ranking — Pádel Miramar</title>
+<title>Ranking — Training y Pádel Miramar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0B0B0B; --card:#161616; --card-2:#1D1D1D; --line:#2A2A2A;
-    --lime:#D2F23A; --lime-dim:rgba(210,242,58,0.15);
-    --white:#F5F5F5; --grey:#9B9B9B;
-    --font-display:'Montserrat', sans-serif; --font-body:'Inter', sans-serif;
+  :root {
+    --bg: #080b12;
+    --card: #0e121c;
+    --card-2: #151a26;
+    --line: #1e2433;
+    --blue: #3b82f6;
+    --blue-glow: rgba(59, 130, 246, 0.4);
+    --blue-dim: rgba(59, 130, 246, 0.15);
+    --lime: #d2f23a;
+    --lime-glow: rgba(210, 242, 58, 0.4);
+    --lime-dim: rgba(210, 242, 58, 0.12);
+    --white: #f5f5f5;
+    --grey: #8a93a6;
+    --font-display: 'Montserrat', sans-serif;
+    --font-body: 'Inter', sans-serif;
   }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg) url('hero-banner-padel-bg-blue.png') center/cover no-repeat fixed;color:var(--white);font-family:var(--font-body);line-height:1.5;}
-  a{color:inherit;text-decoration:none;}
-  button{font-family:var(--font-body);}
-  select{
-    background:var(--card-2);border:1px solid var(--line);border-radius:8px;color:var(--white);
-    padding:10px 12px;font-size:0.88rem;outline:none;
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg) url('hero-banner-padel-bg-blue.png') center/cover no-repeat fixed;
+    color: var(--white); font-family: var(--font-body); line-height: 1.5;
   }
-  select:focus{border-color:var(--lime);}
+  a { color: inherit; text-decoration: none; }
+  button, select, input { font-family: var(--font-body); }
 
-  nav{
-    display:flex;align-items:center;justify-content:space-between;padding:20px 4vw;
-    border-bottom:1px solid var(--line);flex-wrap:wrap;gap:14px;
+  select, input {
+    background: var(--card-2); border: 1px solid var(--line); border-radius: 10px; color: var(--white);
+    padding: 12px 14px; font-size: 0.9rem; outline: none; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .brand{display:flex;align-items:center;gap:14px;}
-  .brand-icon{width:44px;height:44px;border-radius:12px;background:var(--lime);display:flex;align-items:center;justify-content:center;}
-  .brand-name{font-family:var(--font-display);font-weight:900;font-size:1.15rem;letter-spacing:0.01em;line-height:1;}
-  .brand-name span{display:block;color:var(--lime);font-size:0.95rem;font-weight:800;}
-  .brand-divider{width:1px;height:28px;background:var(--line);margin:0 6px;}
-  .brand-season{font-family:var(--font-display);font-weight:700;color:var(--lime);font-size:0.85rem;letter-spacing:0.04em;line-height:1.3;}
-  .brand-season small{display:block;color:var(--grey);font-weight:600;font-size:0.68rem;letter-spacing:0.08em;}
-  .navlinks{display:none;gap:34px;font-weight:600;font-size:0.88rem;color:var(--grey);}
-  .navlinks a:hover{color:var(--white);}
-  .navlinks a.active{color:var(--lime);}
-  @media(min-width:920px){.navlinks{display:flex;}}
+  select:focus, input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 12px var(--blue-glow);
+  }
 
-  section{padding:50px 4vw;max-width:1200px;margin:0 auto;}
-  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px;}
-  .sec-title{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-weight:800;font-size:1.4rem;}
+  /* Navbar */
+  nav {
+    display: flex; align-items: center; justify-content: space-between; padding: 16px 5vw;
+    background: rgba(8, 11, 18, 0.85); backdrop-filter: blur(12px); border-bottom: 2px solid var(--blue);
+    position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 14px;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-icon {
+    width: 118px; height: 118px; margin: -19px 0; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; position: relative; z-index: 2;
+  }
+  .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; line-height: 1.3; color: var(--blue); letter-spacing: 0.03em; }
+  .brand-name span { display: block; color: var(--white); font-size: 1.22rem; font-weight: 900; letter-spacing: 0.005em; }
+
+  .navlinks { display: none; gap: 30px; font-weight: 700; font-size: 0.8rem; color: var(--white); letter-spacing: 0.05em; }
+  .navlinks a { position: relative; padding-bottom: 9px; transition: color 0.2s ease; }
+  .navlinks a.active, .navlinks a:hover { color: var(--blue); }
+  .navlinks a.active::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px;
+    background: var(--blue); border-radius: 2px; box-shadow: 0 0 8px var(--blue-glow);
+  }
+  @media(min-width:920px) { .navlinks { display: flex; } }
+
+  section{padding:65px 5vw;max-width:1300px;margin:0 auto;}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:16px;border-bottom:1px solid rgba(30, 36, 51, 0.6);padding-bottom:16px;}
+  .sec-title{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-weight:900;font-size:1.4rem;letter-spacing:0.03em;text-transform:uppercase;}
+  .sec-title::before{content:'';width:4px;height:24px;background:linear-gradient(180deg, var(--lime), var(--blue));border-radius:2px;display:inline-block;}
   .sec-icon{width:22px;height:22px;color:var(--lime);flex-shrink:0;}
   .sec-note{color:var(--grey);font-size:0.88rem;max-width:38ch;}
 
@@ -52,7 +78,7 @@
   .ranking-table th{text-align:left;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--grey);padding:14px 18px;border-bottom:1px solid var(--line);}
   .ranking-table td{padding:14px 18px;border-bottom:1px solid var(--line);font-size:0.92rem;}
   .ranking-table tr:last-child td{border-bottom:none;}
-  .ranking-row{cursor:pointer;}
+  .ranking-row{cursor:pointer;transition:background 0.15s;}
   .ranking-row:hover td{background:var(--card-2);}
   .puesto{font-family:var(--font-display);font-weight:800;color:var(--grey);}
   .puesto.top{color:var(--lime);}
@@ -61,19 +87,19 @@
 
   .avatar-circle{
     width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;
-    background:var(--lime-dim);display:flex;align-items:center;justify-content:center;
-    font-family:var(--font-display);font-weight:800;color:var(--lime);border:1px solid var(--line);
+    background:#141a26;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:800;color:var(--lime);border:2px solid var(--line);
   }
   .avatar-circle img{width:100%;height:100%;object-fit:cover;}
   .avatar-circle.big{width:96px;height:96px;font-size:2.1rem;}
 
-  .empty-note{color:var(--grey);font-size:0.9rem;padding:26px;background:var(--card);border:1px dashed var(--line);border-radius:14px;text-align:center;}
+  .empty-note{color:var(--grey);font-size:0.9rem;padding:30px;background:var(--card);border:1px dashed var(--line);border-radius:14px;text-align:center;}
 
   /* Perfil de jugador */
-  .perfil-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:60;padding:20px;}
-  .perfil-card{background:var(--card);border:1px solid var(--line);border-radius:20px;max-width:520px;width:100%;max-height:86vh;overflow-y:auto;padding:32px;position:relative;}
-  .perfil-close{position:absolute;top:16px;right:16px;background:var(--card-2);border:1px solid var(--line);color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;line-height:1;}
-  .perfil-close:hover{border-color:var(--lime);color:var(--lime);}
+  .perfil-overlay{position:fixed;inset:0;background:rgba(8,11,18,0.8);display:none;align-items:center;justify-content:center;z-index:60;padding:20px;backdrop-filter:blur(4px);}
+  .perfil-card{background:linear-gradient(165deg, var(--card) 0%, var(--card-2) 130%);border:1px solid var(--line);border-radius:20px;max-width:520px;width:100%;max-height:86vh;overflow-y:auto;padding:32px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+  .perfil-close{position:absolute;top:16px;right:16px;background:var(--card-2);border:1px solid var(--line);color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;line-height:1;transition:all 0.2s;}
+  .perfil-close:hover{border-color:var(--blue);color:var(--blue);}
   .perfil-head{display:flex;align-items:center;gap:18px;margin-bottom:24px;}
   .perfil-nombre{font-family:var(--font-display);font-weight:800;font-size:1.3rem;}
   .perfil-sub{color:var(--grey);font-size:0.85rem;margin-top:2px;}
@@ -88,9 +114,13 @@
   .historial-item .detalle{font-size:0.8rem;color:var(--grey);margin-top:3px;}
   .historial-item .puesto-tag{color:var(--lime);font-weight:700;}
 
-  footer{padding:28px 4vw 44px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;border-top:1px solid var(--line);color:var(--grey);font-size:0.82rem;}
-  .footer-admin{opacity:0.6;}
-  .footer-admin:hover{opacity:1;color:var(--lime);}
+  footer {
+    padding: 35px 5vw; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+    border-top: 1px solid var(--line); color: var(--grey); font-size: 0.85rem; background: rgba(8, 11, 18, 0.95);
+  }
+  .footer-brand { display: flex; align-items: center; gap: 16px; }
+  .footer-admin{opacity:0.6;transition:opacity 0.2s;font-weight:600;}
+  .footer-admin:hover{opacity:1;color:var(--blue);}
 </style>
 </head>
 <body>
@@ -98,17 +128,15 @@
 <nav>
   <div class="brand">
     <div class="brand-icon">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="6" stroke="#0B0B0B" stroke-width="1.6"/><path d="M8 9h8M12 5v8M9.5 6.5l5 5M14.5 6.5l-5 5" stroke="#0B0B0B" stroke-width="1.2"/><path d="M12 15v6" stroke="#0B0B0B" stroke-width="1.6"/></svg>
+      <img src="logo.png" alt="Training y Pádel Miramar" style="width:100%;height:100%;object-fit:contain;">
     </div>
-    <div class="brand-name">PÁDEL<span>MIRAMAR</span></div>
-    <div class="brand-divider"></div>
-    <div class="brand-season">APERTURA<small>2026</small></div>
+    <div class="brand-name">TRAINING Y<span>PÁDEL MIRAMAR</span></div>
   </div>
   <div class="navlinks">
     <a href="index.html">INICIO</a>
-    <a href="index.html#torneos">TORNEOS</a>
+    <a href="index.html#proximos">PRÓXIMOS PARTIDOS</a>
+    <a href="index.html#llaves">LLAVE DEL TORNEO</a>
     <a href="ranking.html" class="active">RANKING</a>
-    <a href="index.html#campeones">CAMPEONES</a>
     <a href="index.html#inscripcion">INSCRIPCIÓN</a>
   </div>
 </nav>
@@ -128,8 +156,10 @@
 </section>
 
 <footer>
-  <div>© 2026 Pádel Miramar. Todos los derechos reservados.</div>
-  <a class="footer-admin" href="admin.html">Panel de administración</a>
+  <div>© 2026 Training y Pádel Miramar. Todos los derechos reservados.</div>
+  <div class="footer-brand">
+    <a class="footer-admin" href="admin.html">Panel de administración</a>
+  </div>
 </footer>
 
 <div class="perfil-overlay" id="perfil-overlay">
