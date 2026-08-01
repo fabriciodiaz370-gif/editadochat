@@ -861,6 +861,25 @@ function teamLabel(team){
   return `${team.j1} / ${team.j2}`;
 }
 
+function findPartidoDeMatch(t, cat, teamA, teamB){
+  if(!teamA || !teamB || teamA.bye || teamB.bye) return null;
+  const labelA = teamLabel(teamA), labelB = teamLabel(teamB);
+  return (t.partidos || []).find(p=>
+    p.categoria === cat &&
+    ((p.equipoA === labelA && p.equipoB === labelB) || (p.equipoA === labelB && p.equipoB === labelA))
+  ) || null;
+}
+
+function matchFechaHtml(partido){
+  if(!partido) return '';
+  if(!partido.fecha && !partido.hora && !partido.cancha) return '';
+  const partes = [];
+  if(partido.fecha) partes.push(formatFechaPartido(partido.fecha));
+  if(partido.hora) partes.push(`${partido.hora} hs`);
+  if(partido.cancha) partes.push(escapeHtml(partido.cancha));
+  return `<div class="seed-date">${partes.join(' · ')}</div>`;
+}
+
 function renderLlave(){
   const t = state.torneos.find(x=>x.id===document.getElementById('select-torneo').value);
   const cat = catLlaveActiva;
@@ -877,7 +896,9 @@ function renderLlave(){
       <div class="round-col" data-round="${ri}">
         <div class="round-header">${roundLabel(ri, rounds.length)}</div>
         <div class="round-matches">
-          ${round.map((m, idx)=>`
+          ${round.map((m, idx)=>{
+            const partido = findPartidoDeMatch(t, cat, m.teamA, m.teamB);
+            return `
             <div class="seed-match" id="match-${ri}-${idx}">
               <div class="seed-row ${m.winner && m.teamA && m.winner.id===m.teamA.id ? 'winner' : ''}">
                 <span><span class="seed-num">${idx*2+1}</span>${teamLabel(m.teamA)}</span>
@@ -885,8 +906,9 @@ function renderLlave(){
               <div class="seed-row ${m.winner && m.teamB && m.winner.id===m.teamB.id ? 'winner' : ''}">
                 <span><span class="seed-num">${idx*2+2}</span>${teamLabel(m.teamB)}</span>
               </div>
+              ${matchFechaHtml(partido)}
             </div>
-          `).join('')}
+          `;}).join('')}
         </div>
       </div>
     `;
