@@ -804,10 +804,10 @@ function renderLlave(){
         <div class="round-matches">
           ${round.map((m, idx)=>`
             <div class="seed-match" id="match-${ri}-${idx}">
-              <div class="seed-row ${m.winner?.id===m.teamA?.id ? 'winner' : ''}">
+              <div class="seed-row ${m.winner && m.teamA && m.winner.id===m.teamA.id ? 'winner' : ''}">
                 <span><span class="seed-num">${idx*2+1}</span>${teamLabel(m.teamA)}</span>
               </div>
-              <div class="seed-row ${m.winner?.id===m.teamB?.id ? 'winner' : ''}">
+              <div class="seed-row ${m.winner && m.teamB && m.winner.id===m.teamB.id ? 'winner' : ''}">
                 <span><span class="seed-num">${idx*2+2}</span>${teamLabel(m.teamB)}</span>
               </div>
             </div>
