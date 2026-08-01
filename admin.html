@@ -322,11 +322,7 @@ function wireTorneoPanel(t){
     t.inscripcionAbierta = false; persist(); render();
   };
 
-  document.querySelectorAll('input[data-cat]').forEach(el=>{
-    el.classList.remove('check-pill');
-  });
-  
-  document.querySelectorAll('[data-cat]').forEach(el=>{
+  document.querySelectorAll('.check-pill[data-cat]').forEach(el=>{
     el.onclick = ()=>{
       const cat = el.dataset.cat;
       if(t.categorias.includes(cat)){
