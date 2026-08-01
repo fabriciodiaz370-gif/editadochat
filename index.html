@@ -104,9 +104,11 @@
   .cat-pill:hover { color: var(--white); border-color: #333c4f; }
   .cat-pill.active { background: var(--lime-dim); border-color: var(--lime); color: var(--lime); }
   .match-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
-  .match-head { display: flex; align-items: center; gap: 10px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em; }
-  .cat-tag { padding: 4px 9px; border-radius: 6px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.45); color: var(--blue); text-transform: uppercase; font-weight: 800; }
-  .match-round { color: var(--grey); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; font-size: 0.68rem; }
+  .match-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em; }
+  .cat-tag { padding: 4px 9px; border-radius: 6px; border: 1px solid transparent; text-transform: uppercase; font-weight: 800; flex-shrink: 0; }
+  .match-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; text-align: right; }
+  .match-torneo { color: var(--white); font-weight: 800; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .match-round { color: var(--grey); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; font-size: 0.66rem; }
   .match-body { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
   .team-box { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 42%; }
   .avatar-pair { display: flex; margin-left: -10px; }
@@ -194,16 +196,26 @@
   }
 
   /* Torneos Grid */
-  .torneos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-  @media(max-width:1100px){ .torneos-grid { grid-template-columns: repeat(3, 1fr); } }
-  @media(max-width:820px){ .torneos-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media(max-width:560px){ .torneos-grid { grid-template-columns: 1fr; } }
-  .torneo-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .torneos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  @media(max-width:1100px){ .torneos-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media(max-width:640px){ .torneos-grid { grid-template-columns: 1fr; } }
+  .torneo-card {
+    background: linear-gradient(165deg, var(--card) 0%, var(--card-2) 130%);
+    border: 1px solid var(--line); border-radius: 16px; padding: 26px;
+    display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden;
+    transition: transform .18s ease, border-color .18s ease;
+  }
+  .torneo-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, var(--blue), var(--lime)); }
+  .torneo-card:hover { transform: translateY(-4px); border-color: #2a3348; }
+  .torneo-card h3 { font-size: 1.15rem; }
+  .torneo-meta { display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: var(--grey); }
+  .torneo-meta-item { display: flex; align-items: center; gap: 8px; }
+  .torneo-meta-item svg { color: var(--blue); flex-shrink: 0; }
   .badge { font-size: 0.65rem; font-weight: 800; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
   .badge-abierto { background: var(--lime-dim); color: var(--lime); }
   .badge-cerrado { background: rgba(229,72,77,0.15); color: #e5484d; }
-  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .chip { font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: var(--card-2); color: var(--grey); }
+  .chips { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 4px; }
+  .chip { font-size: 0.68rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; border: 1px solid transparent; }
 
   /* Info Cards Footer Grid */
   .info-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 40px; }
@@ -368,6 +380,11 @@ import {
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let state = null;
 
+function chipHtml(categoria){
+  const rgb = getCategoriaColorRGB(categoria);
+  return `<span class="chip" style="background:rgba(${rgb},0.14);border-color:rgba(${rgb},0.45);color:rgb(${rgb});">${getCategoriaLabel(state,categoria)}</span>`;
+}
+
 function renderTorneosGrid(){
   const grid = document.getElementById('torneos-grid');
   if(!state?.torneos?.length){ grid.innerHTML = '<div class="empty-note">Todavía no hay torneos cargados.</div>'; return; }
@@ -376,8 +393,17 @@ function renderTorneosGrid(){
       <div class="torneo-card">
         <div><span class="badge ${t.inscripcionAbierta ? 'badge-abierto' : 'badge-cerrado'}">${t.inscripcionAbierta ? 'Inscripción Abierta' : 'Inscripción Cerrada'}</span></div>
         <h3 style="font-family:var(--font-display);">${t.nombre}</h3>
-        <div style="font-size:0.8rem; color:var(--grey);">${t.fecha} — <b>${t.lugar}</b></div>
-        <div class="chips">${t.categorias.map(c=>`<span class="chip">${getCategoriaLabel(state,c)}</span>`).join('')}</div>
+        <div class="torneo-meta">
+          <div class="torneo-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+            ${escapeHtml(t.fecha)}
+          </div>
+          <div class="torneo-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+            <b>${escapeHtml(t.lugar)}</b>
+          </div>
+        </div>
+        <div class="chips">${t.categorias.map(c=>chipHtml(c)).join('')}</div>
       </div>
     `;
   }).join('');
@@ -385,6 +411,26 @@ function renderTorneosGrid(){
 
 function escapeHtml(str){
   return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const CATEGORIA_COLORS_RGB = {
+  '3ra': '168,85,247',
+  '4ta': '249,115,22',
+  '5ta': '236,72,153',
+  '6ta': '250,204,21',
+  '7ma': '59,130,246',
+  '8va': '34,197,94',
+};
+const CATEGORIA_COLORS_PALETTE = ['234,179,8','168,85,247','236,72,153','56,189,248','34,197,94','249,115,22'];
+function getCategoriaColorRGB(categoria){
+  if(CATEGORIA_COLORS_RGB[categoria]) return CATEGORIA_COLORS_RGB[categoria];
+  let hash = 0;
+  for(const ch of String(categoria)) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  return CATEGORIA_COLORS_PALETTE[hash % CATEGORIA_COLORS_PALETTE.length];
+}
+function catTagHtml(categoria){
+  const rgb = getCategoriaColorRGB(categoria);
+  return `<span class="cat-tag" style="background:rgba(${rgb},0.14);border-color:rgba(${rgb},0.5);color:rgb(${rgb});">${getCategoriaLabel(state,categoria)}</span>`;
 }
 
 const MESES_ABREV = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
@@ -472,8 +518,11 @@ function renderProximosPartidos(){
     return `
       <div class="match-card">
         <div class="match-head">
-          <span class="cat-tag">${getCategoriaLabel(state,p.categoria)}</span>
-          <span class="match-round">${p.ronda ? getRondaLabel(p.ronda) : escapeHtml(p.torneoNombre || '')}</span>
+          ${catTagHtml(p.categoria)}
+          <div class="match-meta">
+            ${p.torneoNombre ? `<span class="match-torneo">${escapeHtml(p.torneoNombre)}</span>` : ''}
+            ${p.ronda ? `<span class="match-round">${getRondaLabel(p.ronda)}</span>` : ''}
+          </div>
         </div>
         <div class="match-body">
           <div class="team-box">
