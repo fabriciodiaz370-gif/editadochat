@@ -303,11 +303,11 @@
       border: 1px solid var(--line); 
       border-radius: 16px; 
       padding: 16px 12px; 
-      overflow-x: auto; 
+      overflow-x: hidden; 
       -webkit-overflow-scrolling: touch;
       position: relative;
     }
-    @media(min-width:768px) { .bracket-wrap { border-radius: 20px; padding: 36px 28px; } }
+    @media(min-width:768px) { .bracket-wrap { border-radius: 20px; padding: 36px 28px; overflow-x: auto; } }
   .bracket { 
     display: flex; 
     flex-direction: column;
@@ -351,6 +351,18 @@
   }
   @media(min-width:768px) { .round-matches { justify-content: space-around; gap: 14px; } }
 
+  /* Flechita entre rondas apiladas (solo mobile, donde no hay conectores SVG) */
+  .round-col:not(:last-child)::after {
+    content: '';
+    display: block;
+    width: 2px;
+    height: 18px;
+    margin: 10px auto 0;
+    background: linear-gradient(180deg, var(--blue), var(--lime));
+    border-radius: 2px;
+  }
+  @media(min-width:768px) { .round-col:not(:last-child)::after { display: none; } }
+
   /* En mobile se apila todo verticalmente: los conectores SVG (pensados para el layout horizontal) se ocultan */
   .bracket-svg-layer { display: none; }
   @media(min-width:768px) { .bracket-svg-layer {
@@ -361,22 +373,25 @@
     background: #0e121c; /* Usa un color de tarjeta sólido e idéntico para todos */
     border: 1px solid var(--line); 
     border-radius: 10px; 
-    height: 70px;
+    min-height: 70px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     transition: all 0.2s;
   }
+  @media(min-width:768px) { .seed-match { height: 70px; } }
   .seed-match:hover { border-color: var(--blue); transform: scale(1.02); }
   .seed-row { 
     display: flex; 
     align-items: center; 
     justify-content: space-between; 
-    padding: 6px 14px; 
+    padding: 8px 14px; 
     font-size: 0.8rem; 
     font-weight: 600; 
+    min-width: 0;
   }
+  .seed-row > span { min-width: 0; overflow-wrap: break-word; word-break: break-word; }
   .seed-row:first-child { border-bottom: 1px solid var(--line); }
   .seed-num { color: var(--blue); font-weight: 800; font-size: 0.72rem; margin-right: 8px; display: inline-block; width: 14px; }
   .seed-row.winner { color: var(--lime); font-weight: 800; background: rgba(210, 242, 58, 0.06); }
@@ -899,6 +914,7 @@ function renderLlave(){
 }
 
 function drawConnectors(rounds){
+  if(window.innerWidth < 768) return; // en mobile la llave se apila y no se usan conectores
   const svg = document.getElementById('bracket-svg');
   const container = document.getElementById('bracket-container');
   if(!svg || !container) return;
