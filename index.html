@@ -88,11 +88,13 @@
     .navlinks a { padding: 0 0 9px; border-bottom: none; }
   }
 
-  /* Hero: foto de fondo a pantalla completa */
+  /* Hero: foto de fondo a pantalla completa. En mobile usamos un recorte
+     de la imagen centrado en la paleta/pelota/pasto, porque la foto original
+     es muy panorámica y en pantallas angostas queda mayormente el fondo negro. */
   .hero-container {
     position: relative;
     background: linear-gradient(180deg, rgba(8,11,18,0.3) 0%, rgba(8,11,18,0.92) 80%, var(--bg) 100%),
-                url('hero-banner.png') center/cover no-repeat;
+                url('hero-banner-mobile.png') center/cover no-repeat;
     padding: 90px 5vw 60px;
     min-height: 480px;
     display: flex;
@@ -101,7 +103,13 @@
     overflow: hidden;
   }
   @media(min-width:640px) { .hero-container { padding: 140px 5vw 110px; min-height: 620px; } }
-  @media(min-width:920px) { .hero-container { padding: 220px 5vw 190px; min-height: 800px; } }
+  @media(min-width:920px) {
+    .hero-container {
+      padding: 220px 5vw 190px; min-height: 800px;
+      background: linear-gradient(180deg, rgba(8,11,18,0.3) 0%, rgba(8,11,18,0.92) 80%, var(--bg) 100%),
+                  url('hero-banner.png') center/cover no-repeat;
+    }
+  }
   
   /* AQUÍ SE QUITÓ EL DIFUMINADO AMARILLO */
   .hero-container::after {
