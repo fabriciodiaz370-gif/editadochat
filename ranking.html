@@ -240,6 +240,7 @@ function avatarHtml(j, big){
 }
 
 // ---- RANKING DE JUGADORES ----
+
 function populateGeneroSelect(){
   const sel = document.getElementById('rk-genero');
   sel.innerHTML = Object.entries(GENEROS)
@@ -255,13 +256,6 @@ function populateGeneroSelect(){
 
   sel.onchange = renderRanking;
 }
-
-function populateGeneroSelect(){
-  const sel = document.getElementById('rk-genero');
-  sel.innerHTML = Object.entries(GENEROS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
-  sel.onchange = renderRanking;
-}
-
 function renderRanking(){
   const cat = document.getElementById('rk-categoria').value;
   const genero = document.getElementById('rk-genero').value;
