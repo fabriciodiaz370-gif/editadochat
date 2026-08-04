@@ -240,13 +240,19 @@ function avatarHtml(j, big){
 }
 
 // ---- RANKING DE JUGADORES ----
-function populateCategoriaSelect(){
-  const sel = document.getElementById('rk-categoria');
-  sel.innerHTML = getAllCategorias(state).map(c=>`<option value="${c}">${getCategoriaLabel(state,c)}</option>`).join('');
-  // Por defecto se muestra la categoría 7ma (si existe entre las categorías disponibles)
-  if(getAllCategorias(state).includes('7ma')){
-    sel.value = '7ma';
+function populateGeneroSelect(){
+  const sel = document.getElementById('rk-genero');
+  sel.innerHTML = Object.entries(GENEROS)
+    .map(([k,v]) => `<option value="${k}">${v}</option>`)
+    .join('');
+
+  // Mostrar Femenino por defecto
+  if (Object.keys(GENEROS).includes('femenino')) {
+    sel.value = 'femenino';
+  } else if (Object.keys(GENEROS).includes('F')) {
+    sel.value = 'F';
   }
+
   sel.onchange = renderRanking;
 }
 
